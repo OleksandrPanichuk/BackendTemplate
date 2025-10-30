@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/src/users/dto/user.dto.ts">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/users/dto/user.dto.ts" />
+              <option name="updatedContent" value="export class UserDto {&#10;  email: string;&#10;  avatarUrl?: string;&#10;  username?: string;&#10;  firstName?: string;&#10;  lastName?: string;&#10;&#10;  constructor(partial: Partial&lt;UserDto&gt;) {&#10;    Object.assign(this, partial);&#10;  }&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

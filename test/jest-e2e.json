@@ -1,0 +1,26 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "@app/hashing": "<rootDir>/../libs/hashing/src",
+    "@app/hashing/(.*)": "<rootDir>/../libs/hashing/src/$1",
+    "@app/mailer": "<rootDir>/../libs/mailer/src",
+    "@app/mailer/(.*)": "<rootDir>/../libs/mailer/src/$1",
+    "@app/prisma": "<rootDir>/../libs/prisma/src",
+    "@app/prisma/(.*)": "<rootDir>/../libs/prisma/src/$1",
+    "@app/redis": "<rootDir>/../libs/redis/src",
+    "@app/redis/(.*)": "<rootDir>/../libs/redis/src/$1",
+    "@app/sms": "<rootDir>/../libs/sms/src",
+    "@app/sms/(.*)": "<rootDir>/../libs/sms/src/$1",
+    "^@app/logger(|/.*)$": "<rootDir>/../libs/logger/src/$1"
+  }
+}

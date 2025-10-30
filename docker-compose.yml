@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: backend-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: backend_db
+      POSTGRES_USER: backend_user
+      POSTGRES_PASSWORD: backend_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - backend-network
+
+  redis:
+    image: redis:latest
+    container_name: backend-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+        - backend-network
+    volumes:
+      - redis_data:/data
+
+  backend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-dev
+    restart: unless-stopped
+    command: sh -c "npx prisma generate && npm run start:dev"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://backend_user:backend_password@postgres:5432/backend_db
+      PORT: 8080
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "200"
+      WATCHPACK_POLLING: "true"
+      WATCHPACK_POLLING_INTERVAL: "200"
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+    networks:
+      - backend-network
+
+volumes:
+    postgres_data:
+    redis_data:
+    node_modules:
+
+networks:
+  backend-network:
+    driver: bridge

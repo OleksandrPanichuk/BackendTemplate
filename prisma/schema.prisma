@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  MEMBER
+  ADMIN
+}
+
+model File {
+  id String @id @default(uuid()) @db.Uuid
+
+  url String  @db.VarChar(255)
+  key String? @unique @db.VarChar(255)
+
+  users User[]
+
+  createdAt DateTime @default(now()) @map("creted_at")
+
+  @@map("files")
+}
+
+model User {
+  id String @id @default(uuid()) @db.Uuid
+
+  email         String   @unique
+  emailVerified Boolean  @default(false) @map("email_verified")
+  username      String   @unique
+  role          UserRole @default(MEMBER)
+
+  firstName String? @map("first_name") @db.VarChar(255)
+  lastName  String? @map("last_name") @db.VarChar(255)
+
+  failedLoginAttempts Int?
+  lockedUntil         DateTime?
+
+  hash String? @db.VarChar(255)
+
+  avatar   File?   @relation(fields: [avatarId], references: [id])
+  avatarId String? @unique @map("avatar_id") @db.Uuid
+
+  resetPasswordTokens ResetPasswordToken[]
+  verificationCodes   VerificationCode[]
+  twoFactorAuth       TwoFactorAuth?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model VerificationCode {
+  id String @id @default(uuid()) @db.Uuid
+
+  code String @db.VarChar(255)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id") @db.Uuid
+
+  resendCount Int       @default(0) @map("resend_count")
+  expiresAt   DateTime  @map("expires_at")
+  consumedAt  DateTime? @map("consumed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, consumedAt, expiresAt], map: "idx_verification_codes_lookup")
+  @@map("verification_codes")
+}
+
+model ResetPasswordToken {
+  id String @id @default(uuid()) @db.Uuid
+
+  token       String    @unique @db.VarChar(255)
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String    @map("user_id") @db.Uuid
+  resendCount Int       @default(0) @map("resend_count")
+  expiresAt   DateTime  @map("expires_at")
+  consumedAt  DateTime? @map("consumed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId], map: "idx_reset_password_user_id")
+  @@map("reset_password_tokens")
+}
+
+model TwoFactorAuth {
+  id String @id @default(uuid()) @db.Uuid
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique @map("user_id") @db.Uuid
+
+  totpSecret   String?  @map("totp_secret") @db.VarChar(255)
+  totpEnabled  Boolean  @default(false) @map("totp_enabled")
+  totpVerified Boolean  @default(false) @map("totp_verified")
+  backupCodes  String[] @map("backup_codes")
+
+  smsEnabled       Boolean   @default(false) @map("sms_enabled")
+  smsCodeExpiresAt DateTime? @map("sms_code_expires_at")
+  smsCode String? @map("sms_code") @db.VarChar(6)
+  phoneNumber      String?   @map("phone_number") @db.VarChar(20)
+  phoneVerified    Boolean   @default(false) @map("phone_verified")
+
+  lastUsedAt DateTime? @map("last_used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@map("two_factor_auth")
+}
