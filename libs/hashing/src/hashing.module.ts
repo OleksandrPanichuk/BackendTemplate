@@ -1,7 +1,6 @@
-import { Global, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { HashingService } from './hashing.service';
 
-@Global()
 @Module({
   providers: [HashingService],
   exports: [HashingService],

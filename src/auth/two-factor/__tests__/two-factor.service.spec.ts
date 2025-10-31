@@ -1,7 +1,7 @@
 import { UsersRepository } from '@/users/users.repository';
 import { HashingService } from '@app/hashing';
-import { SmsService } from '@app/sms';
 import { Test, TestingModule } from '@nestjs/testing';
+import { SnsService } from 'libs/sns/src';
 import { TotpService } from '../totp.service';
 import { TwoFactorRepository } from '../two-factor.repository';
 import { TwoFactorService } from '../two-factor.service';
@@ -22,7 +22,8 @@ describe('TwoFactorService', () => {
     verify: jest.fn(),
   };
 
-  const mockSmsService = {
+  // TODO: change the mockSnsService according to the new SnsService methods
+  const mockSnsService = {
     sendVerificationCode: jest.fn(),
   };
 
@@ -59,8 +60,8 @@ describe('TwoFactorService', () => {
           useValue: mockHashingService,
         },
         {
-          provide: SmsService,
-          useValue: mockSmsService,
+          provide: SnsService,
+          useValue: mockSnsService,
         },
       ],
     }).compile();
@@ -80,7 +81,7 @@ describe('TwoFactorService', () => {
     mockTotpService.generateQRCode.mockReset();
     mockHashingService.hash.mockReset();
     mockHashingService.verify.mockReset();
-    mockSmsService.sendVerificationCode.mockReset();
+    mockSnsService.sendVerificationCode.mockReset();
   });
 
   it('should be defined', () => {
@@ -289,11 +290,11 @@ describe('TwoFactorService', () => {
   describe('setupSms', () => {
     it('should send SMS code and save it to database', async () => {
       const phoneNumber = '+1234567890';
-      mockSmsService.sendVerificationCode.mockResolvedValueOnce(undefined);
+      mockSnsService.sendVerificationCode.mockResolvedValueOnce(undefined);
 
       const result = await service.setupSms(userId, phoneNumber);
 
-      expect(mockSmsService.sendVerificationCode).toHaveBeenCalledWith(
+      expect(mockSnsService.sendVerificationCode).toHaveBeenCalledWith(
         phoneNumber,
         expect.stringMatching(/^\d{6}$/),
       );
@@ -321,7 +322,7 @@ describe('TwoFactorService', () => {
 
     it('should throw an error when SMS sending fails', async () => {
       const phoneNumber = '+1234567890';
-      mockSmsService.sendVerificationCode.mockRejectedValueOnce(
+      mockSnsService.sendVerificationCode.mockRejectedValueOnce(
         new Error('SMS service error'),
       );
 
@@ -419,13 +420,13 @@ describe('TwoFactorService', () => {
         smsCode: null,
         smsCodeExpiresAt: null,
       });
-      mockSmsService.sendVerificationCode.mockResolvedValueOnce(undefined);
+      mockSnsService.sendVerificationCode.mockResolvedValueOnce(undefined);
 
       await expect(service.disableSms(userId, '123456')).rejects.toThrow(
         'Verification code sent. Please provide the code to disable SMS.',
       );
 
-      expect(mockSmsService.sendVerificationCode).toHaveBeenCalled();
+      expect(mockSnsService.sendVerificationCode).toHaveBeenCalled();
       expect(mockTwoFactorRepository.update).toHaveBeenCalled();
     });
 
@@ -515,7 +516,7 @@ describe('TwoFactorService', () => {
       mockTwoFactorRepository.findByUserId.mockResolvedValueOnce({
         phoneNumber: '+1234567890',
       });
-      mockSmsService.sendVerificationCode.mockRejectedValueOnce(
+      mockSnsService.sendVerificationCode.mockRejectedValueOnce(
         new Error('SMS service error'),
       );
 
@@ -528,11 +529,11 @@ describe('TwoFactorService', () => {
       mockTwoFactorRepository.findByUserId.mockResolvedValueOnce({
         phoneNumber: '+1234567890',
       });
-      mockSmsService.sendVerificationCode.mockResolvedValueOnce(undefined);
+      mockSnsService.sendVerificationCode.mockResolvedValueOnce(undefined);
 
       const result = await service.resendSmsCode(userId);
 
-      expect(mockSmsService.sendVerificationCode).toHaveBeenCalledWith(
+      expect(mockSnsService.sendVerificationCode).toHaveBeenCalledWith(
         '+1234567890',
         expect.stringMatching(/^\d{6}$/),
       );
@@ -882,7 +883,7 @@ describe('TwoFactorService', () => {
         smsEnabled: true,
         phoneNumber: '+1234567890',
       });
-      mockSmsService.sendVerificationCode.mockRejectedValueOnce(
+      mockSnsService.sendVerificationCode.mockRejectedValueOnce(
         new Error('SMS service error'),
       );
 
@@ -896,11 +897,11 @@ describe('TwoFactorService', () => {
         smsEnabled: true,
         phoneNumber: '+1234567890',
       });
-      mockSmsService.sendVerificationCode.mockResolvedValueOnce(undefined);
+      mockSnsService.sendVerificationCode.mockResolvedValueOnce(undefined);
 
       await service.send2FACode(userId);
 
-      expect(mockSmsService.sendVerificationCode).toHaveBeenCalledWith(
+      expect(mockSnsService.sendVerificationCode).toHaveBeenCalledWith(
         '+1234567890',
         expect.stringMatching(/^\d{6}$/),
       );

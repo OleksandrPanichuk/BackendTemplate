@@ -25,6 +25,7 @@ export const envSchema = z.object({
   AWS_REGION: z.string().min(1),
   AWS_ACCESS_KEY_ID: z.string().min(1),
   AWS_SECRET_ACCESS_KEY: z.string().min(1),
+  AWS_S3_BUCKET: z.string().min(1),
   // Nodemailer config
   MAIL_HOST: z.string().min(1),
   MAIL_PORT: z.coerce.number(),
@@ -34,6 +35,8 @@ export const envSchema = z.object({
   SUPPORT_EMAIL: z.email().optional(),
   // Sentry
   SENTRY_DSN: z.url(),
+  // Stripe
+  STRIPE_API_KEY: z.string().min(1),
 });
 
 function toLiteralMap<const A extends readonly string[]>(

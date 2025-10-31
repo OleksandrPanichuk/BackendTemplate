@@ -2,13 +2,13 @@
 import { TwoFactorRepository } from '@/auth/two-factor/two-factor.repository';
 import { UsersRepository } from '@/users/users.repository';
 import { HashingService } from '@app/hashing';
-import { SmsService } from '@app/sms';
 import {
   BadRequestException,
   Injectable,
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
+import { SnsService } from 'libs/sns/src';
 
 @Injectable()
 export class TwoFactorService {
@@ -18,14 +18,14 @@ export class TwoFactorService {
   constructor(
     private readonly totpService: TotpService,
     private readonly hashingService: HashingService,
-    private readonly smsService: SmsService,
+    private readonly snsService: SnsService,
     private readonly usersRepository: UsersRepository,
     private readonly twoFactorRepository: TwoFactorRepository,
   ) {}
 
   public async getStatus(userId: string) {
     const twoFactorAuth = await this.twoFactorRepository.findByUserId(userId);
-   
+
     if (!twoFactorAuth) {
       return {
         totpEnabled: false,
@@ -65,7 +65,7 @@ export class TwoFactorService {
 
   public async verifyAndEnableTotp(userId: string, token: string) {
     const twoFactorAuth = await this.twoFactorRepository.findByUserId(userId);
-    
+
     if (!twoFactorAuth?.totpSecret) {
       throw new BadRequestException('TOTP not set up');
     }
@@ -90,7 +90,7 @@ export class TwoFactorService {
       totpVerified: true,
       backupCodes: hashedBackupCodes,
     });
-    
+
     this.logger.log(`TOTP enabled for user: ${userId}`);
     return {
       backupCodes,
@@ -100,7 +100,7 @@ export class TwoFactorService {
 
   public async disableTotp(userId: string, code: string) {
     const twoFactorAuth = await this.twoFactorRepository.findByUserId(userId);
-    
+
     if (!twoFactorAuth?.totpEnabled) {
       throw new BadRequestException('TOTP not enabled');
     }
@@ -139,7 +139,10 @@ export class TwoFactorService {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     try {
-      await this.smsService.sendVerificationCode(phoneNumber, code);
+      await this.snsService.send(
+        phoneNumber,
+        `Your verification code is: ${code}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to send SMS to ${phoneNumber}: ${error}`);
       throw new BadRequestException('Failed to send SMS code');
@@ -211,9 +214,9 @@ export class TwoFactorService {
         100000 + Math.random() * 900000,
       ).toString();
 
-      await this.smsService.sendVerificationCode(
+      await this.snsService.send(
         twoFactorAuth.phoneNumber,
-        verificationCode,
+        `Your verification code is: ${verificationCode}`,
       );
 
       const expiresAt = new Date(Date.now() + this.SMS_EXPIRATION_TIME);
@@ -251,17 +254,17 @@ export class TwoFactorService {
 
   public async resendSmsCode(userId: string) {
     const twoFactorAuth = await this.twoFactorRepository.findByUserId(userId);
-    
+
     if (!twoFactorAuth?.phoneNumber) {
       throw new BadRequestException('Phone number not set up');
     }
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     try {
-      await this.smsService.sendVerificationCode(
+      await this.snsService.send(
         twoFactorAuth.phoneNumber,
-        code,
+        `Your verification code is: ${code}`,
       );
     } catch (error) {
       this.logger.error(`Failed to resend SMS to user ${userId}: ${error}`);
@@ -269,7 +272,7 @@ export class TwoFactorService {
     }
 
     const expiresAt = new Date(Date.now() + this.SMS_EXPIRATION_TIME);
-    
+
     await this.twoFactorRepository.update(userId, {
       smsCode: code,
       smsCodeExpiresAt: expiresAt,
@@ -419,9 +422,9 @@ export class TwoFactorService {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + this.SMS_EXPIRATION_TIME);
     try {
-      await this.smsService.sendVerificationCode(
+      await this.snsService.send(
         twoFactorAuth.phoneNumber,
-        code,
+        `Your verification code is: ${code}`,
       );
       await this.twoFactorRepository.update(userId, {
         smsCode: code,

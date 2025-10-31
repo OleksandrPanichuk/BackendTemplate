@@ -48,6 +48,7 @@ model User {
   resetPasswordTokens ResetPasswordToken[]
   verificationCodes   VerificationCode[]
   twoFactorAuth       TwoFactorAuth?
+  billingInfo         BillingInfo?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -102,7 +103,7 @@ model TwoFactorAuth {
 
   smsEnabled       Boolean   @default(false) @map("sms_enabled")
   smsCodeExpiresAt DateTime? @map("sms_code_expires_at")
-  smsCode String? @map("sms_code") @db.VarChar(6)
+  smsCode          String?   @map("sms_code") @db.VarChar(6)
   phoneNumber      String?   @map("phone_number") @db.VarChar(20)
   phoneVerified    Boolean   @default(false) @map("phone_verified")
 
@@ -111,4 +112,23 @@ model TwoFactorAuth {
   updatedAt  DateTime  @updatedAt @map("updated_at")
 
   @@map("two_factor_auth")
+}
+
+model BillingInfo {
+  id String @id @default(uuid()) @map("_id") @db.Uuid
+
+  firstName String @map("first_name") @db.VarChar(255)
+  lastName  String @map("last_name") @db.VarChar(255)
+  email     String @unique @db.VarChar(255)
+
+  country     String @db.VarChar(255)
+  city        String @db.VarChar(255)
+  address     String @db.VarChar(255)
+  phoneNumber String @map("phone_number") @db.VarChar(255)
+  postalCode  String @map("postal_code") @db.VarChar(255)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique @map("user_id") @db.Uuid
+
+  @@map("billing_info")
 }

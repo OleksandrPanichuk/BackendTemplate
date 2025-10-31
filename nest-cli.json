@@ -53,13 +53,31 @@
         "tsConfigPath": "libs/redis/tsconfig.lib.json"
       }
     },
-    "sms": {
+    "s3": {
       "type": "library",
-      "root": "libs/sms",
+      "root": "libs/s3",
       "entryFile": "index",
-      "sourceRoot": "libs/sms/src",
+      "sourceRoot": "libs/s3/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/sms/tsconfig.lib.json"
+        "tsConfigPath": "libs/s3/tsconfig.lib.json"
+      }
+    },
+    "sns": {
+      "type": "library",
+      "root": "libs/sns",
+      "entryFile": "index",
+      "sourceRoot": "libs/sns/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/sns/tsconfig.lib.json"
+      }
+    },
+    "stripe": {
+      "type": "library",
+      "root": "libs/stripe",
+      "entryFile": "index",
+      "sourceRoot": "libs/stripe/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/stripe/tsconfig.lib.json"
       }
     }
   }

@@ -21,6 +21,8 @@
     "@app/redis/(.*)": "<rootDir>/../libs/redis/src/$1",
     "@app/sms": "<rootDir>/../libs/sms/src",
     "@app/sms/(.*)": "<rootDir>/../libs/sms/src/$1",
-    "^@app/logger(|/.*)$": "<rootDir>/../libs/logger/src/$1"
+    "^@app/logger(|/.*)$": "<rootDir>/../libs/logger/src/$1",
+    "^@app/storage(|/.*)$": "<rootDir>/../libs/storage/src/$1",
+    "^@app/stripe(|/.*)$": "<rootDir>/../libs/stripe/src/$1"
   }
 }

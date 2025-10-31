@@ -51,11 +51,23 @@
       "@app/redis/*": [
         "libs/redis/src/*"
       ],
-      "@app/sms": [
-        "libs/sms/src"
+      "@app/s3": [
+        "libs/s3/src"
       ],
-      "@app/sms/*": [
-        "libs/sms/src/*"
+      "@app/s3/*": [
+        "libs/s3/src/*"
+      ],
+      "@app/sns": [
+        "libs/sns/src"
+      ],
+      "@app/sns/*": [
+        "libs/sns/src/*"
+      ],
+      "@app/stripe": [
+        "libs/stripe/src"
+      ],
+      "@app/stripe/*": [
+        "libs/stripe/src/*"
       ],
       "@prisma/generated": [
         "generated/prisma"

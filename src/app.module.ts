@@ -35,7 +35,6 @@ import { LoggerModule } from '@app/logger';
     ScheduleModule.forRoot(),
     SentryModule.forRoot(),
     LoggerModule,
-    HashingModule,
     PrismaModule,
     AuthModule,
     UsersModule,
