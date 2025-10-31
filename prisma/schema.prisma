@@ -13,6 +13,49 @@ enum UserRole {
   ADMIN
 }
 
+enum TenantMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Tenant {
+  id String @id @default(uuid()) @db.Uuid
+
+  name String @db.VarChar(255)
+  slug String @unique @db.VarChar(255)
+
+  ownerId String @map("owner_id") @db.Uuid
+
+  members TenantMember[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerId], map: "idx_tenant_owner")
+  @@map("tenants")
+}
+
+model TenantMember {
+  id String @id @default(uuid()) @db.Uuid
+
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId String @map("tenant_id") @db.Uuid
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id") @db.Uuid
+
+  role TenantMemberRole @default(MEMBER)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, userId])
+  @@index([userId], map: "idx_tenant_member_user")
+  @@index([tenantId], map: "idx_tenant_member_tenant")
+  @@map("tenant_members")
+}
+
 model File {
   id String @id @default(uuid()) @db.Uuid
 
@@ -49,6 +92,7 @@ model User {
   verificationCodes   VerificationCode[]
   twoFactorAuth       TwoFactorAuth?
   billingInfo         BillingInfo?
+  tenantMemberships   TenantMember[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

@@ -1,7 +1,7 @@
 import { envSchema } from '@/shared/config';
 import { LoggingInterceptor } from '@/shared/interceptors';
 import { SecurityHeadersMiddleware } from '@/shared/middlewares';
-import { HashingModule } from '@app/hashing';
+import { LoggerModule } from '@app/logger';
 import { PrismaModule } from '@app/prisma';
 import { RedisModule } from '@app/redis';
 import {
@@ -16,8 +16,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { AuthModule } from './auth/auth.module';
+import { TenantsModule } from './tenants/tenants.module';
 import { UsersModule } from './users/users.module';
-import { LoggerModule } from '@app/logger';
 
 @Module({
   imports: [
@@ -38,6 +38,7 @@ import { LoggerModule } from '@app/logger';
     PrismaModule,
     AuthModule,
     UsersModule,
+    TenantsModule,
     RedisModule,
   ],
   providers: [

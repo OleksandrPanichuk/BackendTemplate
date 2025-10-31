@@ -1,4 +1,5 @@
 import { SignInInput, SignUpInput } from '@/auth/dto';
+import { TenantOnboardingService } from '@/tenants/tenant-onboarding.service';
 import { UserEntity } from '@/users/user.entity';
 import { UsersRepository } from '@/users/users.repository';
 import { HashingService } from '@app/hashing';
@@ -17,12 +18,13 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   private readonly MAX_FAILED_ATTEMPTS = 5;
-  private readonly LOCK_DURATION = 15 * 60 * 1000; // 15 minutes
+  private readonly LOCK_DURATION = 15 * 60 * 1000;
 
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly hashingService: HashingService,
     private readonly twoFactorService: TwoFactorService,
+    private readonly tenantOnboardingService: TenantOnboardingService,
   ) {}
 
   public async oauthSignIn(dto?: TOAuthUser): Promise<UserEntity> {
@@ -40,6 +42,11 @@ export class AuthService {
       });
 
       await this.usersRepository.updateVerificationStatus(newUser.id);
+
+      await this.tenantOnboardingService.createDefaultTenant(
+        newUser.id,
+        newUser.username,
+      );
 
       return new UserEntity(newUser);
     }
@@ -76,6 +83,11 @@ export class AuthService {
     });
 
     this.logger.log(`New user registered: ${newUser.id}`);
+
+    await this.tenantOnboardingService.createDefaultTenant(
+      newUser.id,
+      newUser.username,
+    );
 
     return new UserEntity(newUser);
   }
