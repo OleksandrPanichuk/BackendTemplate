@@ -44,12 +44,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 6.16.2
- * Query Engine version: 1c57fdcd7e44b29b9313256c76699e91c3ac3c43
+ * Prisma Client JS version: 6.18.0
+ * Query Engine version: 34b5a692b7bd79939a9a2c3ef97d816e749cda2f
  */
 Prisma.prismaVersion = {
-  client: "6.16.2",
-  engine: "1c57fdcd7e44b29b9313256c76699e91c3ac3c43"
+  client: "6.18.0",
+  engine: "34b5a692b7bd79939a9a2c3ef97d816e749cda2f"
 }
 
 Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -114,7 +114,6 @@ exports.Prisma.UserScalarFieldEnum = {
   email: 'email',
   emailVerified: 'emailVerified',
   username: 'username',
-  role: 'role',
   firstName: 'firstName',
   lastName: 'lastName',
   failedLoginAttempts: 'failedLoginAttempts',
@@ -163,6 +162,49 @@ exports.Prisma.TwoFactorAuthScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.BillingInfoScalarFieldEnum = {
+  id: 'id',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  email: 'email',
+  country: 'country',
+  city: 'city',
+  address: 'address',
+  phoneNumber: 'phoneNumber',
+  postalCode: 'postalCode'
+};
+
+exports.Prisma.WorkspaceScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  slug: 'slug',
+  logoId: 'logoId',
+  requireTwoFactorAuth: 'requireTwoFactorAuth',
+  createAt: 'createAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MemberScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  userId: 'userId',
+  role: 'role',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InvitationScalarFieldEnum = {
+  id: 'id',
+  role: 'role',
+  status: 'status',
+  workspaceId: 'workspaceId',
+  userId: 'userId',
+  senderId: 'senderId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -177,9 +219,16 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
-exports.UserRole = exports.$Enums.UserRole = {
-  MEMBER: 'MEMBER',
-  ADMIN: 'ADMIN'
+exports.MemberRole = exports.$Enums.MemberRole = {
+  OWNER: 'OWNER',
+  ADMIM: 'ADMIM',
+  MEMBER: 'MEMBER'
+};
+
+exports.InvitationStatus = exports.$Enums.InvitationStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  DECLINED: 'DECLINED'
 };
 
 exports.Prisma.ModelName = {
@@ -187,7 +236,11 @@ exports.Prisma.ModelName = {
   User: 'User',
   VerificationCode: 'VerificationCode',
   ResetPasswordToken: 'ResetPasswordToken',
-  TwoFactorAuth: 'TwoFactorAuth'
+  TwoFactorAuth: 'TwoFactorAuth',
+  BillingInfo: 'BillingInfo',
+  Workspace: 'Workspace',
+  Member: 'Member',
+  Invitation: 'Invitation'
 };
 /**
  * Create the Client
@@ -222,8 +275,8 @@ const config = {
     "schemaEnvPath": "../../.env"
   },
   "relativePath": "../../prisma",
-  "clientVersion": "6.16.2",
-  "engineVersion": "1c57fdcd7e44b29b9313256c76699e91c3ac3c43",
+  "clientVersion": "6.18.0",
+  "engineVersion": "34b5a692b7bd79939a9a2c3ef97d816e749cda2f",
   "datasourceNames": [
     "db"
   ],
@@ -237,8 +290,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum UserRole {\n  MEMBER\n  ADMIN\n}\n\nmodel File {\n  id String @id @default(uuid()) @db.Uuid\n\n  url String  @db.VarChar(255)\n  key String? @unique @db.VarChar(255)\n\n  users User[]\n\n  createdAt DateTime @default(now()) @map(\"creted_at\")\n\n  @@map(\"files\")\n}\n\nmodel User {\n  id String @id @default(uuid()) @db.Uuid\n\n  email         String   @unique\n  emailVerified Boolean  @default(false) @map(\"email_verified\")\n  username      String   @unique\n  role          UserRole @default(MEMBER)\n\n  firstName String? @map(\"first_name\") @db.VarChar(255)\n  lastName  String? @map(\"last_name\") @db.VarChar(255)\n\n  failedLoginAttempts Int?\n  lockedUntil         DateTime?\n\n  hash String? @db.VarChar(255)\n\n  avatar   File?   @relation(fields: [avatarId], references: [id])\n  avatarId String? @unique @map(\"avatar_id\") @db.Uuid\n\n  resetPasswordTokens ResetPasswordToken[]\n  verificationCodes   VerificationCode[]\n  twoFactorAuth       TwoFactorAuth?\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  @@map(\"users\")\n}\n\nmodel VerificationCode {\n  id String @id @default(uuid()) @db.Uuid\n\n  code String @db.VarChar(255)\n\n  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)\n  userId String @map(\"user_id\") @db.Uuid\n\n  resendCount Int       @default(0) @map(\"resend_count\")\n  expiresAt   DateTime  @map(\"expires_at\")\n  consumedAt  DateTime? @map(\"consumed_at\")\n  createdAt   DateTime  @default(now()) @map(\"created_at\")\n\n  @@index([userId, consumedAt, expiresAt], map: \"idx_verification_codes_lookup\")\n  @@map(\"verification_codes\")\n}\n\nmodel ResetPasswordToken {\n  id String @id @default(uuid()) @db.Uuid\n\n  token       String    @unique @db.VarChar(255)\n  user        User      @relation(fields: [userId], references: [id])\n  userId      String    @map(\"user_id\") @db.Uuid\n  resendCount Int       @default(0) @map(\"resend_count\")\n  expiresAt   DateTime  @map(\"expires_at\")\n  consumedAt  DateTime? @map(\"consumed_at\")\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  @@index([userId], map: \"idx_reset_password_user_id\")\n  @@map(\"reset_password_tokens\")\n}\n\nmodel TwoFactorAuth {\n  id String @id @default(uuid()) @db.Uuid\n\n  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)\n  userId String @unique @map(\"user_id\") @db.Uuid\n\n  totpSecret   String?  @map(\"totp_secret\") @db.VarChar(255)\n  totpEnabled  Boolean  @default(false) @map(\"totp_enabled\")\n  totpVerified Boolean  @default(false) @map(\"totp_verified\")\n  backupCodes  String[] @map(\"backup_codes\")\n\n  smsEnabled       Boolean   @default(false) @map(\"sms_enabled\")\n  smsCodeExpiresAt DateTime? @map(\"sms_code_expires_at\")\n  smsCode          String?   @map(\"sms_code\") @db.VarChar(6)\n  phoneNumber      String?   @map(\"phone_number\") @db.VarChar(20)\n  phoneVerified    Boolean   @default(false) @map(\"phone_verified\")\n\n  lastUsedAt DateTime? @map(\"last_used_at\")\n  createdAt  DateTime  @default(now()) @map(\"created_at\")\n  updatedAt  DateTime  @updatedAt @map(\"updated_at\")\n\n  @@map(\"two_factor_auth\")\n}\n",
-  "inlineSchemaHash": "7f590816ade3b777a951f50822a2975845b7d80ec35efe3274b6e37e4dda4ad2",
+  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum MemberRole {\n  OWNER\n  ADMIM\n  MEMBER\n}\n\nmodel File {\n  id String @id @default(uuid()) @db.Uuid\n\n  url String  @db.VarChar(255)\n  key String? @unique @db.VarChar(255)\n\n  users User[]\n  logos Workspace[]\n\n  createdAt DateTime @default(now()) @map(\"creted_at\")\n\n  @@map(\"files\")\n}\n\nmodel User {\n  id String @id @default(uuid()) @db.Uuid\n\n  email         String  @unique\n  emailVerified Boolean @default(false) @map(\"email_verified\")\n  username      String  @unique\n\n  firstName String? @map(\"first_name\") @db.VarChar(255)\n  lastName  String? @map(\"last_name\") @db.VarChar(255)\n\n  failedLoginAttempts Int?\n  lockedUntil         DateTime?\n\n  hash String? @db.VarChar(255)\n\n  avatar   File?   @relation(fields: [avatarId], references: [id])\n  avatarId String? @unique @map(\"avatar_id\") @db.Uuid\n\n  resetPasswordTokens ResetPasswordToken[]\n  verificationCodes   VerificationCode[]\n  twoFactorAuth       TwoFactorAuth?\n  workspaces          Member[]\n\n  sentInvitations     Invitation[] @relation(\"Sender\")\n  receivedInvitations Invitation[] @relation(\"Invited\")\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  @@map(\"users\")\n}\n\nmodel VerificationCode {\n  id String @id @default(uuid()) @db.Uuid\n\n  code String @db.VarChar(255)\n\n  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)\n  userId String @map(\"user_id\") @db.Uuid\n\n  resendCount Int       @default(0) @map(\"resend_count\")\n  expiresAt   DateTime  @map(\"expires_at\")\n  consumedAt  DateTime? @map(\"consumed_at\")\n  createdAt   DateTime  @default(now()) @map(\"created_at\")\n\n  @@index([userId, consumedAt, expiresAt], map: \"idx_verification_codes_lookup\")\n  @@map(\"verification_codes\")\n}\n\nmodel ResetPasswordToken {\n  id String @id @default(uuid()) @db.Uuid\n\n  token       String    @unique @db.VarChar(255)\n  user        User      @relation(fields: [userId], references: [id])\n  userId      String    @map(\"user_id\") @db.Uuid\n  resendCount Int       @default(0) @map(\"resend_count\")\n  expiresAt   DateTime  @map(\"expires_at\")\n  consumedAt  DateTime? @map(\"consumed_at\")\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  @@index([userId], map: \"idx_reset_password_user_id\")\n  @@map(\"reset_password_tokens\")\n}\n\nmodel TwoFactorAuth {\n  id String @id @default(uuid()) @db.Uuid\n\n  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)\n  userId String @unique @map(\"user_id\") @db.Uuid\n\n  totpSecret   String?  @map(\"totp_secret\") @db.VarChar(255)\n  totpEnabled  Boolean  @default(false) @map(\"totp_enabled\")\n  totpVerified Boolean  @default(false) @map(\"totp_verified\")\n  backupCodes  String[] @map(\"backup_codes\")\n\n  smsEnabled       Boolean   @default(false) @map(\"sms_enabled\")\n  smsCodeExpiresAt DateTime? @map(\"sms_code_expires_at\")\n  smsCode          String?   @map(\"sms_code\") @db.VarChar(6)\n  phoneNumber      String?   @map(\"phone_number\") @db.VarChar(20)\n  phoneVerified    Boolean   @default(false) @map(\"phone_verified\")\n\n  lastUsedAt DateTime? @map(\"last_used_at\")\n  createdAt  DateTime  @default(now()) @map(\"created_at\")\n  updatedAt  DateTime  @updatedAt @map(\"updated_at\")\n\n  @@map(\"two_factor_auth\")\n}\n\nmodel BillingInfo {\n  id String @id @default(uuid()) @map(\"_id\") @db.Uuid\n\n  firstName String @map(\"first_name\") @db.VarChar(255)\n  lastName  String @map(\"last_name\") @db.VarChar(255)\n  email     String @unique @db.VarChar(255)\n\n  country     String @db.VarChar(255)\n  city        String @db.VarChar(255)\n  address     String @db.VarChar(255)\n  phoneNumber String @map(\"phone_number\") @db.VarChar(255)\n  postalCode  String @map(\"postal_code\") @db.VarChar(255)\n\n  @@map(\"billing_info\")\n}\n\nmodel Workspace {\n  id String @id @default(uuid()) @db.Uuid\n\n  name        String  @db.VarChar(255)\n  description String? @db.Text\n  slug        String  @unique @db.VarChar(255)\n  logo        File?   @relation(fields: [logoId], references: [id])\n  logoId      String? @map(\"logo_id\") @db.Uuid\n\n  members     Member[]\n  invitations Invitation[]\n\n  requireTwoFactorAuth Boolean @default(false) @map(\"require_two_factor_auth\")\n\n  createAt  DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  @@map(\"workspaces\")\n}\n\nmodel Member {\n  id String @id @default(uuid()) @db.Uuid\n\n  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)\n  workspaceId String    @map(\"workspace_id\") @db.Uuid\n\n  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)\n  userId String @map(\"user_id\") @db.Uuid\n\n  role MemberRole @default(MEMBER)\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  @@unique([workspaceId, userId], map: \"member_by_workspace_id_and_user_id\")\n  @@map(\"members\")\n}\n\nenum InvitationStatus {\n  PENDING\n  ACCEPTED\n  DECLINED\n}\n\nmodel Invitation {\n  id String @id @default(uuid()) @db.Uuid\n\n  role   MemberRole       @default(MEMBER)\n  status InvitationStatus @default(PENDING)\n\n  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)\n  workspaceId String    @map(\"workspace_id\") @db.Uuid\n\n  user   User   @relation(\"Invited\", fields: [userId], references: [id], onDelete: Cascade)\n  userId String @map(\"user_id\") @db.Uuid\n\n  sender   User   @relation(\"Sender\", fields: [senderId], references: [id], onDelete: Cascade)\n  senderId String @map(\"sender_id\") @db.Uuid\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  @@index([workspaceId, userId], map: \"invitation_by_workspace_id_and_user_id\")\n  @@map(\"invitations\")\n}\n",
+  "inlineSchemaHash": "fa1e457f2a3aa8d116da8da0bbeceb916f00ea9b4326cea9745df755c404080c",
   "copyEngine": true
 }
 
@@ -259,7 +312,7 @@ if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
   config.isBundled = true
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"File\":{\"dbName\":\"files\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"url\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"key\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"users\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"FileToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"creted_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"User\":{\"dbName\":\"users\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"email\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"emailVerified\",\"dbName\":\"email_verified\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"username\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"role\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"UserRole\",\"nativeType\":null,\"default\":\"MEMBER\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"firstName\",\"dbName\":\"first_name\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"lastName\",\"dbName\":\"last_name\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"failedLoginAttempts\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"lockedUntil\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"hash\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"avatar\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"File\",\"nativeType\":null,\"relationName\":\"FileToUser\",\"relationFromFields\":[\"avatarId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"avatarId\",\"dbName\":\"avatar_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":true,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"resetPasswordTokens\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"ResetPasswordToken\",\"nativeType\":null,\"relationName\":\"ResetPasswordTokenToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"verificationCodes\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"VerificationCode\",\"nativeType\":null,\"relationName\":\"UserToVerificationCode\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"twoFactorAuth\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"TwoFactorAuth\",\"nativeType\":null,\"relationName\":\"TwoFactorAuthToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"dbName\":\"updated_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"VerificationCode\":{\"dbName\":\"verification_codes\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"code\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"user\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"UserToVerificationCode\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"dbName\":\"user_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"resendCount\",\"dbName\":\"resend_count\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":0,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"expiresAt\",\"dbName\":\"expires_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"consumedAt\",\"dbName\":\"consumed_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"ResetPasswordToken\":{\"dbName\":\"reset_password_tokens\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"token\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"user\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"ResetPasswordTokenToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"dbName\":\"user_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"resendCount\",\"dbName\":\"resend_count\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":0,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"expiresAt\",\"dbName\":\"expires_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"consumedAt\",\"dbName\":\"consumed_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"dbName\":\"updated_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"TwoFactorAuth\":{\"dbName\":\"two_factor_auth\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"user\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"TwoFactorAuthToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"dbName\":\"user_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"totpSecret\",\"dbName\":\"totp_secret\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"totpEnabled\",\"dbName\":\"totp_enabled\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"totpVerified\",\"dbName\":\"totp_verified\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"backupCodes\",\"dbName\":\"backup_codes\",\"kind\":\"scalar\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"smsEnabled\",\"dbName\":\"sms_enabled\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"smsCodeExpiresAt\",\"dbName\":\"sms_code_expires_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"smsCode\",\"dbName\":\"sms_code\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"6\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"phoneNumber\",\"dbName\":\"phone_number\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"20\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"phoneVerified\",\"dbName\":\"phone_verified\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"lastUsedAt\",\"dbName\":\"last_used_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"dbName\":\"updated_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{\"UserRole\":{\"values\":[{\"name\":\"MEMBER\",\"dbName\":null},{\"name\":\"ADMIN\",\"dbName\":null}],\"dbName\":null}},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"File\":{\"dbName\":\"files\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"url\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"key\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"users\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"FileToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"logos\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Workspace\",\"nativeType\":null,\"relationName\":\"FileToWorkspace\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"creted_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"User\":{\"dbName\":\"users\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"email\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"emailVerified\",\"dbName\":\"email_verified\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"username\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"firstName\",\"dbName\":\"first_name\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"lastName\",\"dbName\":\"last_name\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"failedLoginAttempts\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Int\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"lockedUntil\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"hash\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"avatar\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"File\",\"nativeType\":null,\"relationName\":\"FileToUser\",\"relationFromFields\":[\"avatarId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"avatarId\",\"dbName\":\"avatar_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":true,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"resetPasswordTokens\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"ResetPasswordToken\",\"nativeType\":null,\"relationName\":\"ResetPasswordTokenToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"verificationCodes\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"VerificationCode\",\"nativeType\":null,\"relationName\":\"UserToVerificationCode\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"twoFactorAuth\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"TwoFactorAuth\",\"nativeType\":null,\"relationName\":\"TwoFactorAuthToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"workspaces\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Member\",\"nativeType\":null,\"relationName\":\"MemberToUser\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"sentInvitations\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Invitation\",\"nativeType\":null,\"relationName\":\"Sender\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"receivedInvitations\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Invitation\",\"nativeType\":null,\"relationName\":\"Invited\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"dbName\":\"updated_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"VerificationCode\":{\"dbName\":\"verification_codes\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"code\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"user\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"UserToVerificationCode\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"dbName\":\"user_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"resendCount\",\"dbName\":\"resend_count\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":0,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"expiresAt\",\"dbName\":\"expires_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"consumedAt\",\"dbName\":\"consumed_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"ResetPasswordToken\":{\"dbName\":\"reset_password_tokens\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"token\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"user\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"ResetPasswordTokenToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"dbName\":\"user_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"resendCount\",\"dbName\":\"resend_count\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"nativeType\":null,\"default\":0,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"expiresAt\",\"dbName\":\"expires_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"consumedAt\",\"dbName\":\"consumed_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"dbName\":\"updated_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"TwoFactorAuth\":{\"dbName\":\"two_factor_auth\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"user\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"TwoFactorAuthToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"dbName\":\"user_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"totpSecret\",\"dbName\":\"totp_secret\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"totpEnabled\",\"dbName\":\"totp_enabled\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"totpVerified\",\"dbName\":\"totp_verified\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"backupCodes\",\"dbName\":\"backup_codes\",\"kind\":\"scalar\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"smsEnabled\",\"dbName\":\"sms_enabled\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"smsCodeExpiresAt\",\"dbName\":\"sms_code_expires_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"smsCode\",\"dbName\":\"sms_code\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"6\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"phoneNumber\",\"dbName\":\"phone_number\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"20\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"phoneVerified\",\"dbName\":\"phone_verified\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"lastUsedAt\",\"dbName\":\"last_used_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"dbName\":\"updated_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"BillingInfo\":{\"dbName\":\"billing_info\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"dbName\":\"_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"firstName\",\"dbName\":\"first_name\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"lastName\",\"dbName\":\"last_name\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"email\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"country\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"city\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"address\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"phoneNumber\",\"dbName\":\"phone_number\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"postalCode\",\"dbName\":\"postal_code\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"Workspace\":{\"dbName\":\"workspaces\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"name\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"description\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Text\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"slug\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":true,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"VarChar\",[\"255\"]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"logo\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"File\",\"nativeType\":null,\"relationName\":\"FileToWorkspace\",\"relationFromFields\":[\"logoId\"],\"relationToFields\":[\"id\"],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"logoId\",\"dbName\":\"logo_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"members\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Member\",\"nativeType\":null,\"relationName\":\"MemberToWorkspace\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"invitations\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Invitation\",\"nativeType\":null,\"relationName\":\"InvitationToWorkspace\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"requireTwoFactorAuth\",\"dbName\":\"require_two_factor_auth\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"nativeType\":null,\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"dbName\":\"updated_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"Member\":{\"dbName\":\"members\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"workspace\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Workspace\",\"nativeType\":null,\"relationName\":\"MemberToWorkspace\",\"relationFromFields\":[\"workspaceId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"workspaceId\",\"dbName\":\"workspace_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"user\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"MemberToUser\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"dbName\":\"user_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"role\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"MemberRole\",\"nativeType\":null,\"default\":\"MEMBER\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"dbName\":\"updated_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[[\"workspaceId\",\"userId\"]],\"uniqueIndexes\":[{\"name\":null,\"fields\":[\"workspaceId\",\"userId\"]}],\"isGenerated\":false},\"Invitation\":{\"dbName\":\"invitations\",\"schema\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"default\":{\"name\":\"uuid\",\"args\":[4]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"role\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"MemberRole\",\"nativeType\":null,\"default\":\"MEMBER\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"status\",\"kind\":\"enum\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"InvitationStatus\",\"nativeType\":null,\"default\":\"PENDING\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"workspace\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Workspace\",\"nativeType\":null,\"relationName\":\"InvitationToWorkspace\",\"relationFromFields\":[\"workspaceId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"workspaceId\",\"dbName\":\"workspace_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"user\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"Invited\",\"relationFromFields\":[\"userId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"userId\",\"dbName\":\"user_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"sender\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"User\",\"nativeType\":null,\"relationName\":\"Sender\",\"relationFromFields\":[\"senderId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"senderId\",\"dbName\":\"sender_id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"String\",\"nativeType\":[\"Uuid\",[]],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"createdAt\",\"dbName\":\"created_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"DateTime\",\"nativeType\":null,\"default\":{\"name\":\"now\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"updatedAt\",\"dbName\":\"updated_at\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"DateTime\",\"nativeType\":null,\"isGenerated\":false,\"isUpdatedAt\":true}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{\"MemberRole\":{\"values\":[{\"name\":\"OWNER\",\"dbName\":null},{\"name\":\"ADMIM\",\"dbName\":null},{\"name\":\"MEMBER\",\"dbName\":null}],\"dbName\":null},\"InvitationStatus\":{\"values\":[{\"name\":\"PENDING\",\"dbName\":null},{\"name\":\"ACCEPTED\",\"dbName\":null},{\"name\":\"DECLINED\",\"dbName\":null}],\"dbName\":null}},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = undefined
 config.compilerWasm = undefined
@@ -296,7 +349,7 @@ path.join(process.cwd(), "generated/prisma/schema.prisma")
 
 /* !!! This is code generated by Prisma. Do not edit directly. !!!
 /* eslint-disable */
-var yu=Object.create;var jt=Object.defineProperty;var bu=Object.getOwnPropertyDescriptor;var Eu=Object.getOwnPropertyNames;var wu=Object.getPrototypeOf,xu=Object.prototype.hasOwnProperty;var Do=(e,r)=>()=>(e&&(r=e(e=0)),r);var ue=(e,r)=>()=>(r||e((r={exports:{}}).exports,r),r.exports),tr=(e,r)=>{for(var t in r)jt(e,t,{get:r[t],enumerable:!0})},Oo=(e,r,t,n)=>{if(r&&typeof r=="object"||typeof r=="function")for(let i of Eu(r))!xu.call(e,i)&&i!==t&&jt(e,i,{get:()=>r[i],enumerable:!(n=bu(r,i))||n.enumerable});return e};var O=(e,r,t)=>(t=e!=null?yu(wu(e)):{},Oo(r||!e||!e.__esModule?jt(t,"default",{value:e,enumerable:!0}):t,e)),vu=e=>Oo(jt({},"__esModule",{value:!0}),e);var hi=ue((_g,is)=>{"use strict";is.exports=(e,r=process.argv)=>{let t=e.startsWith("-")?"":e.length===1?"-":"--",n=r.indexOf(t+e),i=r.indexOf("--");return n!==-1&&(i===-1||n<i)}});var as=ue((Ng,ss)=>{"use strict";var Fc=__webpack_require__(/*! node:os */ "node:os"),os=__webpack_require__(/*! node:tty */ "node:tty"),de=hi(),{env:G}=process,Qe;de("no-color")||de("no-colors")||de("color=false")||de("color=never")?Qe=0:(de("color")||de("colors")||de("color=true")||de("color=always"))&&(Qe=1);"FORCE_COLOR"in G&&(G.FORCE_COLOR==="true"?Qe=1:G.FORCE_COLOR==="false"?Qe=0:Qe=G.FORCE_COLOR.length===0?1:Math.min(parseInt(G.FORCE_COLOR,10),3));function yi(e){return e===0?!1:{level:e,hasBasic:!0,has256:e>=2,has16m:e>=3}}function bi(e,r){if(Qe===0)return 0;if(de("color=16m")||de("color=full")||de("color=truecolor"))return 3;if(de("color=256"))return 2;if(e&&!r&&Qe===void 0)return 0;let t=Qe||0;if(G.TERM==="dumb")return t;if(process.platform==="win32"){let n=Fc.release().split(".");return Number(n[0])>=10&&Number(n[2])>=10586?Number(n[2])>=14931?3:2:1}if("CI"in G)return["TRAVIS","CIRCLECI","APPVEYOR","GITLAB_CI","GITHUB_ACTIONS","BUILDKITE"].some(n=>n in G)||G.CI_NAME==="codeship"?1:t;if("TEAMCITY_VERSION"in G)return/^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(G.TEAMCITY_VERSION)?1:0;if(G.COLORTERM==="truecolor")return 3;if("TERM_PROGRAM"in G){let n=parseInt((G.TERM_PROGRAM_VERSION||"").split(".")[0],10);switch(G.TERM_PROGRAM){case"iTerm.app":return n>=3?3:2;case"Apple_Terminal":return 2}}return/-256(color)?$/i.test(G.TERM)?2:/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(G.TERM)||"COLORTERM"in G?1:t}function Mc(e){let r=bi(e,e&&e.isTTY);return yi(r)}ss.exports={supportsColor:Mc,stdout:yi(bi(!0,os.isatty(1))),stderr:yi(bi(!0,os.isatty(2)))}});var cs=ue((Lg,us)=>{"use strict";var $c=as(),br=hi();function ls(e){if(/^\d{3,4}$/.test(e)){let t=/(\d{1,2})(\d{2})/.exec(e)||[];return{major:0,minor:parseInt(t[1],10),patch:parseInt(t[2],10)}}let r=(e||"").split(".").map(t=>parseInt(t,10));return{major:r[0],minor:r[1],patch:r[2]}}function Ei(e){let{CI:r,FORCE_HYPERLINK:t,NETLIFY:n,TEAMCITY_VERSION:i,TERM_PROGRAM:o,TERM_PROGRAM_VERSION:s,VTE_VERSION:a,TERM:l}=process.env;if(t)return!(t.length>0&&parseInt(t,10)===0);if(br("no-hyperlink")||br("no-hyperlinks")||br("hyperlink=false")||br("hyperlink=never"))return!1;if(br("hyperlink=true")||br("hyperlink=always")||n)return!0;if(!$c.supportsColor(e)||e&&!e.isTTY)return!1;if("WT_SESSION"in process.env)return!0;if(process.platform==="win32"||r||i)return!1;if(o){let u=ls(s||"");switch(o){case"iTerm.app":return u.major===3?u.minor>=1:u.major>3;case"WezTerm":return u.major>=20200620;case"vscode":return u.major>1||u.major===1&&u.minor>=72;case"ghostty":return!0}}if(a){if(a==="0.50.0")return!1;let u=ls(a);return u.major>0||u.minor>=50}switch(l){case"alacritty":return!0}return!1}us.exports={supportsHyperlink:Ei,stdout:Ei(process.stdout),stderr:Ei(process.stderr)}});var ps=ue((Kg,qc)=>{qc.exports={name:"@prisma/internals",version:"6.16.2",description:"This package is intended for Prisma's internal use",main:"dist/index.js",types:"dist/index.d.ts",repository:{type:"git",url:"https://github.com/prisma/prisma.git",directory:"packages/internals"},homepage:"https://www.prisma.io",author:"Tim Suchanek <suchanek@prisma.io>",bugs:"https://github.com/prisma/prisma/issues",license:"Apache-2.0",scripts:{dev:"DEV=true tsx helpers/build.ts",build:"tsx helpers/build.ts",test:"dotenv -e ../../.db.env -- jest --silent",prepublishOnly:"pnpm run build"},files:["README.md","dist","!**/libquery_engine*","!dist/get-generators/engines/*","scripts"],devDependencies:{"@babel/helper-validator-identifier":"7.25.9","@opentelemetry/api":"1.9.0","@swc/core":"1.11.5","@swc/jest":"0.2.37","@types/babel__helper-validator-identifier":"7.15.2","@types/jest":"29.5.14","@types/node":"18.19.76","@types/resolve":"1.20.6",archiver:"6.0.2","checkpoint-client":"1.1.33","cli-truncate":"4.0.0",dotenv:"16.5.0",empathic:"2.0.0","escape-string-regexp":"5.0.0",execa:"5.1.1","fast-glob":"3.3.3","find-up":"7.0.0","fp-ts":"2.16.9","fs-extra":"11.3.0","fs-jetpack":"5.1.0","global-directory":"4.0.0",globby:"11.1.0","identifier-regex":"1.0.0","indent-string":"4.0.0","is-windows":"1.0.2","is-wsl":"3.1.0",jest:"29.7.0","jest-junit":"16.0.0",kleur:"4.1.5","mock-stdin":"1.0.0","new-github-issue-url":"0.2.1","node-fetch":"3.3.2","npm-packlist":"5.1.3",open:"7.4.2","p-map":"4.0.0",resolve:"1.22.10","string-width":"7.2.0","strip-indent":"4.0.0","temp-dir":"2.0.0",tempy:"1.0.1","terminal-link":"4.0.0",tmp:"0.2.3","ts-pattern":"5.6.2","ts-toolbelt":"9.6.0",typescript:"5.4.5",yarn:"1.22.22"},dependencies:{"@prisma/config":"workspace:*","@prisma/debug":"workspace:*","@prisma/dmmf":"workspace:*","@prisma/driver-adapter-utils":"workspace:*","@prisma/engines":"workspace:*","@prisma/fetch-engine":"workspace:*","@prisma/generator":"workspace:*","@prisma/generator-helper":"workspace:*","@prisma/get-platform":"workspace:*","@prisma/prisma-schema-wasm":"6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43","@prisma/schema-engine-wasm":"6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43","@prisma/schema-files-loader":"workspace:*",arg:"5.0.2",prompts:"2.4.2"},peerDependencies:{typescript:">=5.1.0"},peerDependenciesMeta:{typescript:{optional:!0}},sideEffects:!1}});var Ti=ue((gh,Qc)=>{Qc.exports={name:"@prisma/engines-version",version:"6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43",main:"index.js",types:"index.d.ts",license:"Apache-2.0",author:"Tim Suchanek <suchanek@prisma.io>",prisma:{enginesVersion:"1c57fdcd7e44b29b9313256c76699e91c3ac3c43"},repository:{type:"git",url:"https://github.com/prisma/engines-wrapper.git",directory:"packages/engines-version"},devDependencies:{"@types/node":"18.19.76",typescript:"4.9.5"},files:["index.js","index.d.ts"],scripts:{build:"tsc -d"}}});var on=ue(nn=>{"use strict";Object.defineProperty(nn,"__esModule",{value:!0});nn.enginesVersion=void 0;nn.enginesVersion=Ti().prisma.enginesVersion});var hs=ue((Ih,gs)=>{"use strict";gs.exports=e=>{let r=e.match(/^[ \t]*(?=\S)/gm);return r?r.reduce((t,n)=>Math.min(t,n.length),1/0):0}});var Di=ue((kh,Es)=>{"use strict";Es.exports=(e,r=1,t)=>{if(t={indent:" ",includeEmptyLines:!1,...t},typeof e!="string")throw new TypeError(`Expected \`input\` to be a \`string\`, got \`${typeof e}\``);if(typeof r!="number")throw new TypeError(`Expected \`count\` to be a \`number\`, got \`${typeof r}\``);if(typeof t.indent!="string")throw new TypeError(`Expected \`options.indent\` to be a \`string\`, got \`${typeof t.indent}\``);if(r===0)return e;let n=t.includeEmptyLines?/^/gm:/^(?!\s*$)/gm;return e.replace(n,t.indent.repeat(r))}});var vs=ue((jh,tp)=>{tp.exports={name:"dotenv",version:"16.5.0",description:"Loads environment variables from .env file",main:"lib/main.js",types:"lib/main.d.ts",exports:{".":{types:"./lib/main.d.ts",require:"./lib/main.js",default:"./lib/main.js"},"./config":"./config.js","./config.js":"./config.js","./lib/env-options":"./lib/env-options.js","./lib/env-options.js":"./lib/env-options.js","./lib/cli-options":"./lib/cli-options.js","./lib/cli-options.js":"./lib/cli-options.js","./package.json":"./package.json"},scripts:{"dts-check":"tsc --project tests/types/tsconfig.json",lint:"standard",pretest:"npm run lint && npm run dts-check",test:"tap run --allow-empty-coverage --disable-coverage --timeout=60000","test:coverage":"tap run --show-full-coverage --timeout=60000 --coverage-report=lcov",prerelease:"npm test",release:"standard-version"},repository:{type:"git",url:"git://github.com/motdotla/dotenv.git"},homepage:"https://github.com/motdotla/dotenv#readme",funding:"https://dotenvx.com",keywords:["dotenv","env",".env","environment","variables","config","settings"],readmeFilename:"README.md",license:"BSD-2-Clause",devDependencies:{"@types/node":"^18.11.3",decache:"^4.6.2",sinon:"^14.0.1",standard:"^17.0.0","standard-version":"^9.5.0",tap:"^19.2.0",typescript:"^4.8.4"},engines:{node:">=12"},browser:{fs:!1}}});var As=ue((Bh,_e)=>{"use strict";var Fi=__webpack_require__(/*! node:fs */ "node:fs"),Mi=__webpack_require__(/*! node:path */ "node:path"),np=__webpack_require__(/*! node:os */ "node:os"),ip=__webpack_require__(/*! node:crypto */ "node:crypto"),op=vs(),Ts=op.version,sp=/(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg;function ap(e){let r={},t=e.toString();t=t.replace(/\r\n?/mg,`
+var yu=Object.create;var jt=Object.defineProperty;var bu=Object.getOwnPropertyDescriptor;var Eu=Object.getOwnPropertyNames;var wu=Object.getPrototypeOf,xu=Object.prototype.hasOwnProperty;var Do=(e,r)=>()=>(e&&(r=e(e=0)),r);var ue=(e,r)=>()=>(r||e((r={exports:{}}).exports,r),r.exports),tr=(e,r)=>{for(var t in r)jt(e,t,{get:r[t],enumerable:!0})},Oo=(e,r,t,n)=>{if(r&&typeof r=="object"||typeof r=="function")for(let i of Eu(r))!xu.call(e,i)&&i!==t&&jt(e,i,{get:()=>r[i],enumerable:!(n=bu(r,i))||n.enumerable});return e};var O=(e,r,t)=>(t=e!=null?yu(wu(e)):{},Oo(r||!e||!e.__esModule?jt(t,"default",{value:e,enumerable:!0}):t,e)),vu=e=>Oo(jt({},"__esModule",{value:!0}),e);var hi=ue((_g,is)=>{"use strict";is.exports=(e,r=process.argv)=>{let t=e.startsWith("-")?"":e.length===1?"-":"--",n=r.indexOf(t+e),i=r.indexOf("--");return n!==-1&&(i===-1||n<i)}});var as=ue((Ng,ss)=>{"use strict";var Fc=__webpack_require__(/*! node:os */ "node:os"),os=__webpack_require__(/*! node:tty */ "node:tty"),de=hi(),{env:G}=process,Qe;de("no-color")||de("no-colors")||de("color=false")||de("color=never")?Qe=0:(de("color")||de("colors")||de("color=true")||de("color=always"))&&(Qe=1);"FORCE_COLOR"in G&&(G.FORCE_COLOR==="true"?Qe=1:G.FORCE_COLOR==="false"?Qe=0:Qe=G.FORCE_COLOR.length===0?1:Math.min(parseInt(G.FORCE_COLOR,10),3));function yi(e){return e===0?!1:{level:e,hasBasic:!0,has256:e>=2,has16m:e>=3}}function bi(e,r){if(Qe===0)return 0;if(de("color=16m")||de("color=full")||de("color=truecolor"))return 3;if(de("color=256"))return 2;if(e&&!r&&Qe===void 0)return 0;let t=Qe||0;if(G.TERM==="dumb")return t;if(process.platform==="win32"){let n=Fc.release().split(".");return Number(n[0])>=10&&Number(n[2])>=10586?Number(n[2])>=14931?3:2:1}if("CI"in G)return["TRAVIS","CIRCLECI","APPVEYOR","GITLAB_CI","GITHUB_ACTIONS","BUILDKITE"].some(n=>n in G)||G.CI_NAME==="codeship"?1:t;if("TEAMCITY_VERSION"in G)return/^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(G.TEAMCITY_VERSION)?1:0;if(G.COLORTERM==="truecolor")return 3;if("TERM_PROGRAM"in G){let n=parseInt((G.TERM_PROGRAM_VERSION||"").split(".")[0],10);switch(G.TERM_PROGRAM){case"iTerm.app":return n>=3?3:2;case"Apple_Terminal":return 2}}return/-256(color)?$/i.test(G.TERM)?2:/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(G.TERM)||"COLORTERM"in G?1:t}function Mc(e){let r=bi(e,e&&e.isTTY);return yi(r)}ss.exports={supportsColor:Mc,stdout:yi(bi(!0,os.isatty(1))),stderr:yi(bi(!0,os.isatty(2)))}});var cs=ue((Lg,us)=>{"use strict";var $c=as(),br=hi();function ls(e){if(/^\d{3,4}$/.test(e)){let t=/(\d{1,2})(\d{2})/.exec(e)||[];return{major:0,minor:parseInt(t[1],10),patch:parseInt(t[2],10)}}let r=(e||"").split(".").map(t=>parseInt(t,10));return{major:r[0],minor:r[1],patch:r[2]}}function Ei(e){let{CI:r,FORCE_HYPERLINK:t,NETLIFY:n,TEAMCITY_VERSION:i,TERM_PROGRAM:o,TERM_PROGRAM_VERSION:s,VTE_VERSION:a,TERM:l}=process.env;if(t)return!(t.length>0&&parseInt(t,10)===0);if(br("no-hyperlink")||br("no-hyperlinks")||br("hyperlink=false")||br("hyperlink=never"))return!1;if(br("hyperlink=true")||br("hyperlink=always")||n)return!0;if(!$c.supportsColor(e)||e&&!e.isTTY)return!1;if("WT_SESSION"in process.env)return!0;if(process.platform==="win32"||r||i)return!1;if(o){let u=ls(s||"");switch(o){case"iTerm.app":return u.major===3?u.minor>=1:u.major>3;case"WezTerm":return u.major>=20200620;case"vscode":return u.major>1||u.major===1&&u.minor>=72;case"ghostty":return!0}}if(a){if(a==="0.50.0")return!1;let u=ls(a);return u.major>0||u.minor>=50}switch(l){case"alacritty":return!0}return!1}us.exports={supportsHyperlink:Ei,stdout:Ei(process.stdout),stderr:Ei(process.stderr)}});var ps=ue((Kg,qc)=>{qc.exports={name:"@prisma/internals",version:"6.18.0",description:"This package is intended for Prisma's internal use",main:"dist/index.js",types:"dist/index.d.ts",repository:{type:"git",url:"https://github.com/prisma/prisma.git",directory:"packages/internals"},homepage:"https://www.prisma.io",author:"Tim Suchanek <suchanek@prisma.io>",bugs:"https://github.com/prisma/prisma/issues",license:"Apache-2.0",scripts:{dev:"DEV=true tsx helpers/build.ts",build:"tsx helpers/build.ts",test:"dotenv -e ../../.db.env -- jest --silent",prepublishOnly:"pnpm run build"},files:["README.md","dist","!**/libquery_engine*","!dist/get-generators/engines/*","scripts"],devDependencies:{"@babel/helper-validator-identifier":"7.25.9","@opentelemetry/api":"1.9.0","@swc/core":"1.11.5","@swc/jest":"0.2.37","@types/babel__helper-validator-identifier":"7.15.2","@types/jest":"29.5.14","@types/node":"18.19.76","@types/resolve":"1.20.6",archiver:"6.0.2","checkpoint-client":"1.1.33","cli-truncate":"4.0.0",dotenv:"16.5.0",empathic:"2.0.0","escape-string-regexp":"5.0.0",execa:"8.0.1","fast-glob":"3.3.3","find-up":"7.0.0","fp-ts":"2.16.9","fs-extra":"11.3.0","global-directory":"4.0.0",globby:"11.1.0","identifier-regex":"1.0.0","indent-string":"4.0.0","is-windows":"1.0.2","is-wsl":"3.1.0",jest:"29.7.0","jest-junit":"16.0.0",kleur:"4.1.5","mock-stdin":"1.0.0","new-github-issue-url":"0.2.1","node-fetch":"3.3.2","npm-packlist":"5.1.3",open:"7.4.2","p-map":"4.0.0",resolve:"1.22.10","string-width":"7.2.0","strip-indent":"4.0.0","temp-dir":"2.0.0",tempy:"1.0.1","terminal-link":"4.0.0",tmp:"0.2.3","ts-pattern":"5.6.2","ts-toolbelt":"9.6.0",typescript:"5.4.5",yarn:"1.22.22"},dependencies:{"@prisma/config":"workspace:*","@prisma/debug":"workspace:*","@prisma/dmmf":"workspace:*","@prisma/driver-adapter-utils":"workspace:*","@prisma/engines":"workspace:*","@prisma/fetch-engine":"workspace:*","@prisma/generator":"workspace:*","@prisma/generator-helper":"workspace:*","@prisma/get-platform":"workspace:*","@prisma/prisma-schema-wasm":"6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f","@prisma/schema-engine-wasm":"6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f","@prisma/schema-files-loader":"workspace:*",arg:"5.0.2",prompts:"2.4.2"},peerDependencies:{typescript:">=5.1.0"},peerDependenciesMeta:{typescript:{optional:!0}},sideEffects:!1}});var Ti=ue((gh,Qc)=>{Qc.exports={name:"@prisma/engines-version",version:"6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f",main:"index.js",types:"index.d.ts",license:"Apache-2.0",author:"Tim Suchanek <suchanek@prisma.io>",prisma:{enginesVersion:"34b5a692b7bd79939a9a2c3ef97d816e749cda2f"},repository:{type:"git",url:"https://github.com/prisma/engines-wrapper.git",directory:"packages/engines-version"},devDependencies:{"@types/node":"18.19.76",typescript:"4.9.5"},files:["index.js","index.d.ts"],scripts:{build:"tsc -d"}}});var on=ue(nn=>{"use strict";Object.defineProperty(nn,"__esModule",{value:!0});nn.enginesVersion=void 0;nn.enginesVersion=Ti().prisma.enginesVersion});var hs=ue((Ih,gs)=>{"use strict";gs.exports=e=>{let r=e.match(/^[ \t]*(?=\S)/gm);return r?r.reduce((t,n)=>Math.min(t,n.length),1/0):0}});var Di=ue((kh,Es)=>{"use strict";Es.exports=(e,r=1,t)=>{if(t={indent:" ",includeEmptyLines:!1,...t},typeof e!="string")throw new TypeError(`Expected \`input\` to be a \`string\`, got \`${typeof e}\``);if(typeof r!="number")throw new TypeError(`Expected \`count\` to be a \`number\`, got \`${typeof r}\``);if(typeof t.indent!="string")throw new TypeError(`Expected \`options.indent\` to be a \`string\`, got \`${typeof t.indent}\``);if(r===0)return e;let n=t.includeEmptyLines?/^/gm:/^(?!\s*$)/gm;return e.replace(n,t.indent.repeat(r))}});var vs=ue((jh,tp)=>{tp.exports={name:"dotenv",version:"16.5.0",description:"Loads environment variables from .env file",main:"lib/main.js",types:"lib/main.d.ts",exports:{".":{types:"./lib/main.d.ts",require:"./lib/main.js",default:"./lib/main.js"},"./config":"./config.js","./config.js":"./config.js","./lib/env-options":"./lib/env-options.js","./lib/env-options.js":"./lib/env-options.js","./lib/cli-options":"./lib/cli-options.js","./lib/cli-options.js":"./lib/cli-options.js","./package.json":"./package.json"},scripts:{"dts-check":"tsc --project tests/types/tsconfig.json",lint:"standard",pretest:"npm run lint && npm run dts-check",test:"tap run --allow-empty-coverage --disable-coverage --timeout=60000","test:coverage":"tap run --show-full-coverage --timeout=60000 --coverage-report=lcov",prerelease:"npm test",release:"standard-version"},repository:{type:"git",url:"git://github.com/motdotla/dotenv.git"},homepage:"https://github.com/motdotla/dotenv#readme",funding:"https://dotenvx.com",keywords:["dotenv","env",".env","environment","variables","config","settings"],readmeFilename:"README.md",license:"BSD-2-Clause",devDependencies:{"@types/node":"^18.11.3",decache:"^4.6.2",sinon:"^14.0.1",standard:"^17.0.0","standard-version":"^9.5.0",tap:"^19.2.0",typescript:"^4.8.4"},engines:{node:">=12"},browser:{fs:!1}}});var As=ue((Bh,_e)=>{"use strict";var Fi=__webpack_require__(/*! node:fs */ "node:fs"),Mi=__webpack_require__(/*! node:path */ "node:path"),np=__webpack_require__(/*! node:os */ "node:os"),ip=__webpack_require__(/*! node:crypto */ "node:crypto"),op=vs(),Ts=op.version,sp=/(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg;function ap(e){let r={},t=e.toString();t=t.replace(/\r\n?/mg,`
 `);let n;for(;(n=sp.exec(t))!=null;){let i=n[1],o=n[2]||"";o=o.trim();let s=o[0];o=o.replace(/^(['"`])([\s\S]*)\1$/mg,"$2"),s==='"'&&(o=o.replace(/\\n/g,`
 `),o=o.replace(/\\r/g,"\r")),r[i]=o}return r}function lp(e){let r=Rs(e),t=B.configDotenv({path:r});if(!t.parsed){let s=new Error(`MISSING_DATA: Cannot parse ${r} for an unknown reason`);throw s.code="MISSING_DATA",s}let n=Ss(e).split(","),i=n.length,o;for(let s=0;s<i;s++)try{let a=n[s].trim(),l=cp(t,a);o=B.decrypt(l.ciphertext,l.key);break}catch(a){if(s+1>=i)throw a}return B.parse(o)}function up(e){console.log(`[dotenv@${Ts}][WARN] ${e}`)}function ot(e){console.log(`[dotenv@${Ts}][DEBUG] ${e}`)}function Ss(e){return e&&e.DOTENV_KEY&&e.DOTENV_KEY.length>0?e.DOTENV_KEY:process.env.DOTENV_KEY&&process.env.DOTENV_KEY.length>0?process.env.DOTENV_KEY:""}function cp(e,r){let t;try{t=new URL(r)}catch(a){if(a.code==="ERR_INVALID_URL"){let l=new Error("INVALID_DOTENV_KEY: Wrong format. Must be in valid uri format like dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=development");throw l.code="INVALID_DOTENV_KEY",l}throw a}let n=t.password;if(!n){let a=new Error("INVALID_DOTENV_KEY: Missing key part");throw a.code="INVALID_DOTENV_KEY",a}let i=t.searchParams.get("environment");if(!i){let a=new Error("INVALID_DOTENV_KEY: Missing environment part");throw a.code="INVALID_DOTENV_KEY",a}let o=`DOTENV_VAULT_${i.toUpperCase()}`,s=e.parsed[o];if(!s){let a=new Error(`NOT_FOUND_DOTENV_ENVIRONMENT: Cannot locate environment ${o} in your .env.vault file.`);throw a.code="NOT_FOUND_DOTENV_ENVIRONMENT",a}return{ciphertext:s,key:n}}function Rs(e){let r=null;if(e&&e.path&&e.path.length>0)if(Array.isArray(e.path))for(let t of e.path)Fi.existsSync(t)&&(r=t.endsWith(".vault")?t:`${t}.vault`);else r=e.path.endsWith(".vault")?e.path:`${e.path}.vault`;else r=Mi.resolve(process.cwd(),".env.vault");return Fi.existsSync(r)?r:null}function Ps(e){return e[0]==="~"?Mi.join(np.homedir(),e.slice(1)):e}function pp(e){!!(e&&e.debug)&&ot("Loading env from encrypted .env.vault");let t=B._parseVault(e),n=process.env;return e&&e.processEnv!=null&&(n=e.processEnv),B.populate(n,t,e),{parsed:t}}function dp(e){let r=Mi.resolve(process.cwd(),".env"),t="utf8",n=!!(e&&e.debug);e&&e.encoding?t=e.encoding:n&&ot("No encoding is specified. UTF-8 is used by default");let i=[r];if(e&&e.path)if(!Array.isArray(e.path))i=[Ps(e.path)];else{i=[];for(let l of e.path)i.push(Ps(l))}let o,s={};for(let l of i)try{let u=B.parse(Fi.readFileSync(l,{encoding:t}));B.populate(s,u,e)}catch(u){n&&ot(`Failed to load ${l} ${u.message}`),o=u}let a=process.env;return e&&e.processEnv!=null&&(a=e.processEnv),B.populate(a,s,e),o?{parsed:s,error:o}:{parsed:s}}function mp(e){if(Ss(e).length===0)return B.configDotenv(e);let r=Rs(e);return r?B._configVault(e):(up(`You set DOTENV_KEY but you are missing a .env.vault file at ${r}. Did you forget to build it?`),B.configDotenv(e))}function fp(e,r){let t=Buffer.from(r.slice(-64),"hex"),n=Buffer.from(e,"base64"),i=n.subarray(0,12),o=n.subarray(-16);n=n.subarray(12,-16);try{let s=ip.createDecipheriv("aes-256-gcm",t,i);return s.setAuthTag(o),`${s.update(n)}${s.final()}`}catch(s){let a=s instanceof RangeError,l=s.message==="Invalid key length",u=s.message==="Unsupported state or unable to authenticate data";if(a||l){let c=new Error("INVALID_DOTENV_KEY: It must be 64 characters long (or more)");throw c.code="INVALID_DOTENV_KEY",c}else if(u){let c=new Error("DECRYPTION_FAILED: Please check your DOTENV_KEY");throw c.code="DECRYPTION_FAILED",c}else throw s}}function gp(e,r,t={}){let n=!!(t&&t.debug),i=!!(t&&t.override);if(typeof r!="object"){let o=new Error("OBJECT_REQUIRED: Please check the processEnv argument being passed to populate");throw o.code="OBJECT_REQUIRED",o}for(let o of Object.keys(r))Object.prototype.hasOwnProperty.call(e,o)?(i===!0&&(e[o]=r[o]),n&&ot(i===!0?`"${o}" is already defined and WAS overwritten`:`"${o}" is already defined and was NOT overwritten`)):e[o]=r[o]}var B={configDotenv:dp,_configVault:pp,_parseVault:lp,config:mp,decrypt:fp,parse:ap,populate:gp};_e.exports.configDotenv=B.configDotenv;_e.exports._configVault=B._configVault;_e.exports._parseVault=B._parseVault;_e.exports.config=B.config;_e.exports.decrypt=B.decrypt;_e.exports.parse=B.parse;_e.exports.populate=B.populate;_e.exports=B});var Os=ue((Kh,cn)=>{"use strict";cn.exports=(e={})=>{let r;if(e.repoUrl)r=e.repoUrl;else if(e.user&&e.repo)r=`https://github.com/${e.user}/${e.repo}`;else throw new Error("You need to specify either the `repoUrl` option or both the `user` and `repo` options");let t=new URL(`${r}/issues/new`),n=["body","title","labels","template","milestone","assignee","projects"];for(let i of n){let o=e[i];if(o!==void 0){if(i==="labels"||i==="projects"){if(!Array.isArray(o))throw new TypeError(`The \`${i}\` option should be an array`);o=o.join(",")}t.searchParams.set(i,o)}}return t.toString()};cn.exports.default=cn.exports});var Ki=ue((vb,ea)=>{"use strict";ea.exports=function(){function e(r,t,n,i,o){return r<t||n<t?r>n?n+1:r+1:i===o?t:t+1}return function(r,t){if(r===t)return 0;if(r.length>t.length){var n=r;r=t,t=n}for(var i=r.length,o=t.length;i>0&&r.charCodeAt(i-1)===t.charCodeAt(o-1);)i--,o--;for(var s=0;s<i&&r.charCodeAt(s)===t.charCodeAt(s);)s++;if(i-=s,o-=s,i===0||o<3)return o;var a=0,l,u,c,p,d,f,h,g,I,T,S,b,D=[];for(l=0;l<i;l++)D.push(l+1),D.push(r.charCodeAt(s+l));for(var me=D.length-1;a<o-3;)for(I=t.charCodeAt(s+(u=a)),T=t.charCodeAt(s+(c=a+1)),S=t.charCodeAt(s+(p=a+2)),b=t.charCodeAt(s+(d=a+3)),f=a+=4,l=0;l<me;l+=2)h=D[l],g=D[l+1],u=e(h,u,c,I,g),c=e(u,c,p,T,g),p=e(c,p,d,S,g),f=e(p,d,f,b,g),D[l]=f,d=p,p=c,c=u,u=h;for(;a<o;)for(I=t.charCodeAt(s+(u=a)),f=++a,l=0;l<me;l+=2)h=D[l],D[l]=f=e(h,u,f,I,D[l+1]),u=h;return f}}()});var oa=Do(()=>{"use strict"});var sa=Do(()=>{"use strict"});var jf={};tr(jf,{DMMF:()=>ct,Debug:()=>N,Decimal:()=>Fe,Extensions:()=>ni,MetricsClient:()=>Lr,PrismaClientInitializationError:()=>P,PrismaClientKnownRequestError:()=>z,PrismaClientRustPanicError:()=>ae,PrismaClientUnknownRequestError:()=>V,PrismaClientValidationError:()=>Z,Public:()=>ii,Sql:()=>ie,createParam:()=>va,defineDmmfProperty:()=>Ca,deserializeJsonResponse:()=>Vr,deserializeRawResult:()=>Xn,dmmfToRuntimeDataModel:()=>Ns,empty:()=>Oa,getPrismaClient:()=>fu,getRuntime:()=>Kn,join:()=>Da,makeStrictEnum:()=>gu,makeTypedQueryFactory:()=>Ia,objectEnumValues:()=>On,raw:()=>no,serializeJsonQuery:()=>$n,skip:()=>Mn,sqltag:()=>io,warnEnvConflicts:()=>hu,warnOnce:()=>at});module.exports=vu(jf);var ni={};tr(ni,{defineExtension:()=>ko,getExtensionContext:()=>_o});function ko(e){return typeof e=="function"?e:r=>r.$extends(e)}function _o(e){return e}var ii={};tr(ii,{validator:()=>No});function No(...e){return r=>r}var Bt={};tr(Bt,{$:()=>qo,bgBlack:()=>ku,bgBlue:()=>Fu,bgCyan:()=>$u,bgGreen:()=>Nu,bgMagenta:()=>Mu,bgRed:()=>_u,bgWhite:()=>qu,bgYellow:()=>Lu,black:()=>Cu,blue:()=>nr,bold:()=>W,cyan:()=>De,dim:()=>Ce,gray:()=>Hr,green:()=>qe,grey:()=>Ou,hidden:()=>Ru,inverse:()=>Su,italic:()=>Tu,magenta:()=>Iu,red:()=>ce,reset:()=>Pu,strikethrough:()=>Au,underline:()=>Y,white:()=>Du,yellow:()=>Ie});var oi,Lo,Fo,Mo,$o=!0;typeof process<"u"&&({FORCE_COLOR:oi,NODE_DISABLE_COLORS:Lo,NO_COLOR:Fo,TERM:Mo}=process.env||{},$o=process.stdout&&process.stdout.isTTY);var qo={enabled:!Lo&&Fo==null&&Mo!=="dumb"&&(oi!=null&&oi!=="0"||$o)};function F(e,r){let t=new RegExp(`\\x1b\\[${r}m`,"g"),n=`\x1B[${e}m`,i=`\x1B[${r}m`;return function(o){return!qo.enabled||o==null?o:n+(~(""+o).indexOf(i)?o.replace(t,i+n):o)+i}}var Pu=F(0,0),W=F(1,22),Ce=F(2,22),Tu=F(3,23),Y=F(4,24),Su=F(7,27),Ru=F(8,28),Au=F(9,29),Cu=F(30,39),ce=F(31,39),qe=F(32,39),Ie=F(33,39),nr=F(34,39),Iu=F(35,39),De=F(36,39),Du=F(37,39),Hr=F(90,39),Ou=F(90,39),ku=F(40,49),_u=F(41,49),Nu=F(42,49),Lu=F(43,49),Fu=F(44,49),Mu=F(45,49),$u=F(46,49),qu=F(47,49);var Vu=100,Vo=["green","yellow","blue","magenta","cyan","red"],Yr=[],jo=Date.now(),ju=0,si=typeof process<"u"?process.env:{};globalThis.DEBUG??=si.DEBUG??"";globalThis.DEBUG_COLORS??=si.DEBUG_COLORS?si.DEBUG_COLORS==="true":!0;var zr={enable(e){typeof e=="string"&&(globalThis.DEBUG=e)},disable(){let e=globalThis.DEBUG;return globalThis.DEBUG="",e},enabled(e){let r=globalThis.DEBUG.split(",").map(i=>i.replace(/[.+?^${}()|[\]\\]/g,"\\$&")),t=r.some(i=>i===""||i[0]==="-"?!1:e.match(RegExp(i.split("*").join(".*")+"$"))),n=r.some(i=>i===""||i[0]!=="-"?!1:e.match(RegExp(i.slice(1).split("*").join(".*")+"$")));return t&&!n},log:(...e)=>{let[r,t,...n]=e;(console.warn??console.log)(`${r} ${t}`,...n)},formatters:{}};function Bu(e){let r={color:Vo[ju++%Vo.length],enabled:zr.enabled(e),namespace:e,log:zr.log,extend:()=>{}},t=(...n)=>{let{enabled:i,namespace:o,color:s,log:a}=r;if(n.length!==0&&Yr.push([o,...n]),Yr.length>Vu&&Yr.shift(),zr.enabled(o)||i){let l=n.map(c=>typeof c=="string"?c:Uu(c)),u=`+${Date.now()-jo}ms`;jo=Date.now(),globalThis.DEBUG_COLORS?a(Bt[s](W(o)),...l,Bt[s](u)):a(o,...l,u)}};return new Proxy(t,{get:(n,i)=>r[i],set:(n,i,o)=>r[i]=o})}var N=new Proxy(Bu,{get:(e,r)=>zr[r],set:(e,r,t)=>zr[r]=t});function Uu(e,r=2){let t=new Set;return JSON.stringify(e,(n,i)=>{if(typeof i=="object"&&i!==null){if(t.has(i))return"[Circular *]";t.add(i)}else if(typeof i=="bigint")return i.toString();return i},r)}function Bo(e=7500){let r=Yr.map(([t,...n])=>`${t} ${n.map(i=>typeof i=="string"?i:JSON.stringify(i)).join(" ")}`).join(`
 `);return r.length<e?r:r.slice(-e)}function Uo(){Yr.length=0}var gr=N;var Go=O(__webpack_require__(/*! node:fs */ "node:fs"));function ai(){let e=process.env.PRISMA_QUERY_ENGINE_LIBRARY;if(!(e&&Go.default.existsSync(e))&&process.arch==="ia32")throw new Error('The default query engine type (Node-API, "library") is currently not supported for 32bit Node. Please set `engineType = "binary"` in the "generator" block of your "schema.prisma" file (or use the environment variables "PRISMA_CLIENT_ENGINE_TYPE=binary" and/or "PRISMA_CLI_QUERY_ENGINE_TYPE=binary".)')}var li=["darwin","darwin-arm64","debian-openssl-1.0.x","debian-openssl-1.1.x","debian-openssl-3.0.x","rhel-openssl-1.0.x","rhel-openssl-1.1.x","rhel-openssl-3.0.x","linux-arm64-openssl-1.1.x","linux-arm64-openssl-1.0.x","linux-arm64-openssl-3.0.x","linux-arm-openssl-1.1.x","linux-arm-openssl-1.0.x","linux-arm-openssl-3.0.x","linux-musl","linux-musl-openssl-3.0.x","linux-musl-arm64-openssl-1.1.x","linux-musl-arm64-openssl-3.0.x","linux-nixos","linux-static-x64","linux-static-arm64","windows","freebsd11","freebsd12","freebsd13","freebsd14","freebsd15","openbsd","netbsd","arm"];var Ut="libquery_engine";function Gt(e,r){let t=r==="url";return e.includes("windows")?t?"query_engine.dll.node":`query_engine-${e}.dll.node`:e.includes("darwin")?t?`${Ut}.dylib.node`:`${Ut}-${e}.dylib.node`:t?`${Ut}.so.node`:`${Ut}-${e}.so.node`}var Ko=O(__webpack_require__(/*! node:child_process */ "node:child_process")),mi=O(__webpack_require__(/*! node:fs/promises */ "node:fs/promises")),Ht=O(__webpack_require__(/*! node:os */ "node:os"));var Oe=Symbol.for("@ts-pattern/matcher"),Gu=Symbol.for("@ts-pattern/isVariadic"),Wt="@ts-pattern/anonymous-select-key",ui=e=>!!(e&&typeof e=="object"),Qt=e=>e&&!!e[Oe],Ee=(e,r,t)=>{if(Qt(e)){let n=e[Oe](),{matched:i,selections:o}=n.match(r);return i&&o&&Object.keys(o).forEach(s=>t(s,o[s])),i}if(ui(e)){if(!ui(r))return!1;if(Array.isArray(e)){if(!Array.isArray(r))return!1;let n=[],i=[],o=[];for(let s of e.keys()){let a=e[s];Qt(a)&&a[Gu]?o.push(a):o.length?i.push(a):n.push(a)}if(o.length){if(o.length>1)throw new Error("Pattern error: Using `...P.array(...)` several times in a single pattern is not allowed.");if(r.length<n.length+i.length)return!1;let s=r.slice(0,n.length),a=i.length===0?[]:r.slice(-i.length),l=r.slice(n.length,i.length===0?1/0:-i.length);return n.every((u,c)=>Ee(u,s[c],t))&&i.every((u,c)=>Ee(u,a[c],t))&&(o.length===0||Ee(o[0],l,t))}return e.length===r.length&&e.every((s,a)=>Ee(s,r[a],t))}return Reflect.ownKeys(e).every(n=>{let i=e[n];return(n in r||Qt(o=i)&&o[Oe]().matcherType==="optional")&&Ee(i,r[n],t);// removed by dead control flow
@@ -410,7 +463,7 @@ ${Y(p)}
 If you want the Prisma team to look into it, please open the link above \u{1F64F}
 To increase the chance of success, please post your schema and a snippet of
 how you used Prisma Client in the issue. 
-`}function wl(e,r){throw new Error(r)}function Jm(e){return e!==null&&typeof e=="object"&&typeof e.$type=="string"}function Km(e,r){let t={};for(let n of Object.keys(e))t[n]=r(e[n],n);return t}function Vr(e){return e===null?e:Array.isArray(e)?e.map(Vr):typeof e=="object"?Jm(e)?Hm(e):e.constructor!==null&&e.constructor.name!=="Object"?e:Km(e,Vr):e}function Hm({$type:e,value:r}){switch(e){case"BigInt":return BigInt(r);case"Bytes":{let{buffer:t,byteOffset:n,byteLength:i}=Buffer.from(r,"base64");return new Uint8Array(t,n,i)}case"DateTime":return new Date(r);case"Decimal":return new Le(r);case"Json":return JSON.parse(r);default:wl(r,"Unknown tagged value")}}var xl="6.16.2";var zm=()=>globalThis.process?.release?.name==="node",Zm=()=>!!globalThis.Bun||!!globalThis.process?.versions?.bun,Xm=()=>!!globalThis.Deno,ef=()=>typeof globalThis.Netlify=="object",rf=()=>typeof globalThis.EdgeRuntime=="object",tf=()=>globalThis.navigator?.userAgent==="Cloudflare-Workers";function nf(){return[[ef,"netlify"],[rf,"edge-light"],[tf,"workerd"],[Xm,"deno"],[Zm,"bun"],[zm,"node"]].flatMap(t=>t[0]()?[t[1]]:[]).at(0)??""}var of={node:"Node.js",workerd:"Cloudflare Workers",deno:"Deno and Deno Deploy",netlify:"Netlify Edge Functions","edge-light":"Edge Runtime (Vercel Edge Functions, Vercel Edge Middleware, Next.js (Pages Router) Edge API Routes, Next.js (App Router) Edge Route Handlers or Next.js Middleware)"};function Kn(){let e=nf();return{id:e,prettyName:of[e]||e,isEdge:["workerd","deno","netlify","edge-light"].includes(e)}}function jr({inlineDatasources:e,overrideDatasources:r,env:t,clientVersion:n}){let i,o=Object.keys(e)[0],s=e[o]?.url,a=r[o]?.url;if(o===void 0?i=void 0:a?i=a:s?.value?i=s.value:s?.fromEnvVar&&(i=t[s.fromEnvVar]),s?.fromEnvVar!==void 0&&i===void 0)throw new P(`error: Environment variable not found: ${s.fromEnvVar}.`,n);if(i===void 0)throw new P("error: Missing URL environment variable, value, or override.",n);return i}var Hn=class extends Error{clientVersion;cause;constructor(r,t){super(r),this.clientVersion=t.clientVersion,this.cause=t.cause}get[Symbol.toStringTag](){return this.name}};var oe=class extends Hn{isRetryable;constructor(r,t){super(r,t),this.isRetryable=t.isRetryable??!0}};function R(e,r){return{...e,isRetryable:r}}var ur=class extends oe{name="InvalidDatasourceError";code="P6001";constructor(r,t){super(r,R(t,!1))}};x(ur,"InvalidDatasourceError");function vl(e){let r={clientVersion:e.clientVersion},t=Object.keys(e.inlineDatasources)[0],n=jr({inlineDatasources:e.inlineDatasources,overrideDatasources:e.overrideDatasources,clientVersion:e.clientVersion,env:{...e.env,...typeof process<"u"?process.env:{}}}),i;try{i=new URL(n)}catch{throw new ur(`Error validating datasource \`${t}\`: the URL must start with the protocol \`prisma://\``,r)}let{protocol:o,searchParams:s}=i;if(o!=="prisma:"&&o!==sn)throw new ur(`Error validating datasource \`${t}\`: the URL must start with the protocol \`prisma://\` or \`prisma+postgres://\``,r);let a=s.get("api_key");if(a===null||a.length<1)throw new ur(`Error validating datasource \`${t}\`: the URL must contain a valid API key`,r);let l=Ii(i)?"http:":"https:";process.env.TEST_CLIENT_ENGINE_REMOTE_EXECUTOR&&i.searchParams.has("use_http")&&(l="http:");let u=new URL(i.href.replace(o,l));return{apiKey:a,url:u}}var Pl=O(on()),Yn=class{apiKey;tracingHelper;logLevel;logQueries;engineHash;constructor({apiKey:r,tracingHelper:t,logLevel:n,logQueries:i,engineHash:o}){this.apiKey=r,this.tracingHelper=t,this.logLevel=n,this.logQueries=i,this.engineHash=o}build({traceparent:r,transactionId:t}={}){let n={Accept:"application/json",Authorization:`Bearer ${this.apiKey}`,"Content-Type":"application/json","Prisma-Engine-Hash":this.engineHash,"Prisma-Engine-Version":Pl.enginesVersion};this.tracingHelper.isEnabled()&&(n.traceparent=r??this.tracingHelper.getTraceParent()),t&&(n["X-Transaction-Id"]=t);let i=this.#e();return i.length>0&&(n["X-Capture-Telemetry"]=i.join(", ")),n}#e(){let r=[];return this.tracingHelper.isEnabled()&&r.push("tracing"),this.logLevel&&r.push(this.logLevel),this.logQueries&&r.push("query"),r}};function sf(e){return e[0]*1e3+e[1]/1e6}function po(e){return new Date(sf(e))}var Br=class extends oe{name="ForcedRetryError";code="P5001";constructor(r){super("This request must be retried",R(r,!0))}};x(Br,"ForcedRetryError");var cr=class extends oe{name="NotImplementedYetError";code="P5004";constructor(r,t){super(r,R(t,!1))}};x(cr,"NotImplementedYetError");var $=class extends oe{response;constructor(r,t){super(r,t),this.response=t.response;let n=this.response.headers.get("prisma-request-id");if(n){let i=`(The request id was: ${n})`;this.message=this.message+" "+i}}};var pr=class extends ${name="SchemaMissingError";code="P5005";constructor(r){super("Schema needs to be uploaded",R(r,!0))}};x(pr,"SchemaMissingError");var mo="This request could not be understood by the server",Rt=class extends ${name="BadRequestError";code="P5000";constructor(r,t,n){super(t||mo,R(r,!1)),n&&(this.code=n)}};x(Rt,"BadRequestError");var At=class extends ${name="HealthcheckTimeoutError";code="P5013";logs;constructor(r,t){super("Engine not started: healthcheck timeout",R(r,!0)),this.logs=t}};x(At,"HealthcheckTimeoutError");var Ct=class extends ${name="EngineStartupError";code="P5014";logs;constructor(r,t,n){super(t,R(r,!0)),this.logs=n}};x(Ct,"EngineStartupError");var It=class extends ${name="EngineVersionNotSupportedError";code="P5012";constructor(r){super("Engine version is not supported",R(r,!1))}};x(It,"EngineVersionNotSupportedError");var fo="Request timed out",Dt=class extends ${name="GatewayTimeoutError";code="P5009";constructor(r,t=fo){super(t,R(r,!1))}};x(Dt,"GatewayTimeoutError");var af="Interactive transaction error",Ot=class extends ${name="InteractiveTransactionError";code="P5015";constructor(r,t=af){super(t,R(r,!1))}};x(Ot,"InteractiveTransactionError");var lf="Request parameters are invalid",kt=class extends ${name="InvalidRequestError";code="P5011";constructor(r,t=lf){super(t,R(r,!1))}};x(kt,"InvalidRequestError");var go="Requested resource does not exist",_t=class extends ${name="NotFoundError";code="P5003";constructor(r,t=go){super(t,R(r,!1))}};x(_t,"NotFoundError");var ho="Unknown server error",Ur=class extends ${name="ServerError";code="P5006";logs;constructor(r,t,n){super(t||ho,R(r,!0)),this.logs=n}};x(Ur,"ServerError");var yo="Unauthorized, check your connection string",Nt=class extends ${name="UnauthorizedError";code="P5007";constructor(r,t=yo){super(t,R(r,!1))}};x(Nt,"UnauthorizedError");var bo="Usage exceeded, retry again later",Lt=class extends ${name="UsageExceededError";code="P5008";constructor(r,t=bo){super(t,R(r,!0))}};x(Lt,"UsageExceededError");async function uf(e){let r;try{r=await e.text()}catch{return{type:"EmptyError"}}try{let t=JSON.parse(r);if(typeof t=="string")switch(t){case"InternalDataProxyError":return{type:"DataProxyError",body:t};default:return{type:"UnknownTextError",body:t}}if(typeof t=="object"&&t!==null){if("is_panic"in t&&"message"in t&&"error_code"in t)return{type:"QueryEngineError",body:t};if("EngineNotStarted"in t||"InteractiveTransactionMisrouted"in t||"InvalidRequestError"in t){let n=Object.values(t)[0].reason;return typeof n=="string"&&!["SchemaMissing","EngineVersionNotSupported"].includes(n)?{type:"UnknownJsonError",body:t}:{type:"DataProxyError",body:t}}}return{type:"UnknownJsonError",body:t}}catch{return r===""?{type:"EmptyError"}:{type:"UnknownTextError",body:r}}}async function Ft(e,r){if(e.ok)return;let t={clientVersion:r,response:e},n=await uf(e);if(n.type==="QueryEngineError")throw new z(n.body.message,{code:n.body.error_code,clientVersion:r});if(n.type==="DataProxyError"){if(n.body==="InternalDataProxyError")throw new Ur(t,"Internal Data Proxy error");if("EngineNotStarted"in n.body){if(n.body.EngineNotStarted.reason==="SchemaMissing")return new pr(t);if(n.body.EngineNotStarted.reason==="EngineVersionNotSupported")throw new It(t);if("EngineStartupError"in n.body.EngineNotStarted.reason){let{msg:i,logs:o}=n.body.EngineNotStarted.reason.EngineStartupError;throw new Ct(t,i,o)}if("KnownEngineStartupError"in n.body.EngineNotStarted.reason){let{msg:i,error_code:o}=n.body.EngineNotStarted.reason.KnownEngineStartupError;throw new P(i,r,o)}if("HealthcheckTimeout"in n.body.EngineNotStarted.reason){let{logs:i}=n.body.EngineNotStarted.reason.HealthcheckTimeout;throw new At(t,i)}}if("InteractiveTransactionMisrouted"in n.body){let i={IDParseError:"Could not parse interactive transaction ID",NoQueryEngineFoundError:"Could not find Query Engine for the specified host and transaction ID",TransactionStartError:"Could not start interactive transaction"};throw new Ot(t,i[n.body.InteractiveTransactionMisrouted.reason])}if("InvalidRequestError"in n.body)throw new kt(t,n.body.InvalidRequestError.reason)}if(e.status===401||e.status===403)throw new Nt(t,Gr(yo,n));if(e.status===404)return new _t(t,Gr(go,n));if(e.status===429)throw new Lt(t,Gr(bo,n));if(e.status===504)throw new Dt(t,Gr(fo,n));if(e.status>=500)throw new Ur(t,Gr(ho,n));if(e.status>=400)throw new Rt(t,Gr(mo,n))}function Gr(e,r){return r.type==="EmptyError"?e:`${e}: ${JSON.stringify(r)}`}function Tl(e){let r=Math.pow(2,e)*50,t=Math.ceil(Math.random()*r)-Math.ceil(r/2),n=r+t;return new Promise(i=>setTimeout(()=>i(n),n))}var $e="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";function Sl(e){let r=new TextEncoder().encode(e),t="",n=r.byteLength,i=n%3,o=n-i,s,a,l,u,c;for(let p=0;p<o;p=p+3)c=r[p]<<16|r[p+1]<<8|r[p+2],s=(c&16515072)>>18,a=(c&258048)>>12,l=(c&4032)>>6,u=c&63,t+=$e[s]+$e[a]+$e[l]+$e[u];return i==1?(c=r[o],s=(c&252)>>2,a=(c&3)<<4,t+=$e[s]+$e[a]+"=="):i==2&&(c=r[o]<<8|r[o+1],s=(c&64512)>>10,a=(c&1008)>>4,l=(c&15)<<2,t+=$e[s]+$e[a]+$e[l]+"="),t}function Rl(e){if(!!e.generator?.previewFeatures.some(t=>t.toLowerCase().includes("metrics")))throw new P("The `metrics` preview feature is not yet available with Accelerate.\nPlease remove `metrics` from the `previewFeatures` in your schema.\n\nMore information about Accelerate: https://pris.ly/d/accelerate",e.clientVersion)}var Al={"@prisma/debug":"workspace:*","@prisma/engines-version":"6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43","@prisma/fetch-engine":"workspace:*","@prisma/get-platform":"workspace:*"};var Mt=class extends oe{name="RequestError";code="P5010";constructor(r,t){super(`Cannot fetch data from service:
+`}function wl(e,r){throw new Error(r)}function Jm(e){return e!==null&&typeof e=="object"&&typeof e.$type=="string"}function Km(e,r){let t={};for(let n of Object.keys(e))t[n]=r(e[n],n);return t}function Vr(e){return e===null?e:Array.isArray(e)?e.map(Vr):typeof e=="object"?Jm(e)?Hm(e):e.constructor!==null&&e.constructor.name!=="Object"?e:Km(e,Vr):e}function Hm({$type:e,value:r}){switch(e){case"BigInt":return BigInt(r);case"Bytes":{let{buffer:t,byteOffset:n,byteLength:i}=Buffer.from(r,"base64");return new Uint8Array(t,n,i)}case"DateTime":return new Date(r);case"Decimal":return new Le(r);case"Json":return JSON.parse(r);default:wl(r,"Unknown tagged value")}}var xl="6.18.0";var zm=()=>globalThis.process?.release?.name==="node",Zm=()=>!!globalThis.Bun||!!globalThis.process?.versions?.bun,Xm=()=>!!globalThis.Deno,ef=()=>typeof globalThis.Netlify=="object",rf=()=>typeof globalThis.EdgeRuntime=="object",tf=()=>globalThis.navigator?.userAgent==="Cloudflare-Workers";function nf(){return[[ef,"netlify"],[rf,"edge-light"],[tf,"workerd"],[Xm,"deno"],[Zm,"bun"],[zm,"node"]].flatMap(t=>t[0]()?[t[1]]:[]).at(0)??""}var of={node:"Node.js",workerd:"Cloudflare Workers",deno:"Deno and Deno Deploy",netlify:"Netlify Edge Functions","edge-light":"Edge Runtime (Vercel Edge Functions, Vercel Edge Middleware, Next.js (Pages Router) Edge API Routes, Next.js (App Router) Edge Route Handlers or Next.js Middleware)"};function Kn(){let e=nf();return{id:e,prettyName:of[e]||e,isEdge:["workerd","deno","netlify","edge-light"].includes(e)}}function jr({inlineDatasources:e,overrideDatasources:r,env:t,clientVersion:n}){let i,o=Object.keys(e)[0],s=e[o]?.url,a=r[o]?.url;if(o===void 0?i=void 0:a?i=a:s?.value?i=s.value:s?.fromEnvVar&&(i=t[s.fromEnvVar]),s?.fromEnvVar!==void 0&&i===void 0)throw new P(`error: Environment variable not found: ${s.fromEnvVar}.`,n);if(i===void 0)throw new P("error: Missing URL environment variable, value, or override.",n);return i}var Hn=class extends Error{clientVersion;cause;constructor(r,t){super(r),this.clientVersion=t.clientVersion,this.cause=t.cause}get[Symbol.toStringTag](){return this.name}};var oe=class extends Hn{isRetryable;constructor(r,t){super(r,t),this.isRetryable=t.isRetryable??!0}};function R(e,r){return{...e,isRetryable:r}}var ur=class extends oe{name="InvalidDatasourceError";code="P6001";constructor(r,t){super(r,R(t,!1))}};x(ur,"InvalidDatasourceError");function vl(e){let r={clientVersion:e.clientVersion},t=Object.keys(e.inlineDatasources)[0],n=jr({inlineDatasources:e.inlineDatasources,overrideDatasources:e.overrideDatasources,clientVersion:e.clientVersion,env:{...e.env,...typeof process<"u"?process.env:{}}}),i;try{i=new URL(n)}catch{throw new ur(`Error validating datasource \`${t}\`: the URL must start with the protocol \`prisma://\``,r)}let{protocol:o,searchParams:s}=i;if(o!=="prisma:"&&o!==sn)throw new ur(`Error validating datasource \`${t}\`: the URL must start with the protocol \`prisma://\` or \`prisma+postgres://\``,r);let a=s.get("api_key");if(a===null||a.length<1)throw new ur(`Error validating datasource \`${t}\`: the URL must contain a valid API key`,r);let l=Ii(i)?"http:":"https:";process.env.TEST_CLIENT_ENGINE_REMOTE_EXECUTOR&&i.searchParams.has("use_http")&&(l="http:");let u=new URL(i.href.replace(o,l));return{apiKey:a,url:u}}var Pl=O(on()),Yn=class{apiKey;tracingHelper;logLevel;logQueries;engineHash;constructor({apiKey:r,tracingHelper:t,logLevel:n,logQueries:i,engineHash:o}){this.apiKey=r,this.tracingHelper=t,this.logLevel=n,this.logQueries=i,this.engineHash=o}build({traceparent:r,transactionId:t}={}){let n={Accept:"application/json",Authorization:`Bearer ${this.apiKey}`,"Content-Type":"application/json","Prisma-Engine-Hash":this.engineHash,"Prisma-Engine-Version":Pl.enginesVersion};this.tracingHelper.isEnabled()&&(n.traceparent=r??this.tracingHelper.getTraceParent()),t&&(n["X-Transaction-Id"]=t);let i=this.#e();return i.length>0&&(n["X-Capture-Telemetry"]=i.join(", ")),n}#e(){let r=[];return this.tracingHelper.isEnabled()&&r.push("tracing"),this.logLevel&&r.push(this.logLevel),this.logQueries&&r.push("query"),r}};function sf(e){return e[0]*1e3+e[1]/1e6}function po(e){return new Date(sf(e))}var Br=class extends oe{name="ForcedRetryError";code="P5001";constructor(r){super("This request must be retried",R(r,!0))}};x(Br,"ForcedRetryError");var cr=class extends oe{name="NotImplementedYetError";code="P5004";constructor(r,t){super(r,R(t,!1))}};x(cr,"NotImplementedYetError");var $=class extends oe{response;constructor(r,t){super(r,t),this.response=t.response;let n=this.response.headers.get("prisma-request-id");if(n){let i=`(The request id was: ${n})`;this.message=this.message+" "+i}}};var pr=class extends ${name="SchemaMissingError";code="P5005";constructor(r){super("Schema needs to be uploaded",R(r,!0))}};x(pr,"SchemaMissingError");var mo="This request could not be understood by the server",Rt=class extends ${name="BadRequestError";code="P5000";constructor(r,t,n){super(t||mo,R(r,!1)),n&&(this.code=n)}};x(Rt,"BadRequestError");var At=class extends ${name="HealthcheckTimeoutError";code="P5013";logs;constructor(r,t){super("Engine not started: healthcheck timeout",R(r,!0)),this.logs=t}};x(At,"HealthcheckTimeoutError");var Ct=class extends ${name="EngineStartupError";code="P5014";logs;constructor(r,t,n){super(t,R(r,!0)),this.logs=n}};x(Ct,"EngineStartupError");var It=class extends ${name="EngineVersionNotSupportedError";code="P5012";constructor(r){super("Engine version is not supported",R(r,!1))}};x(It,"EngineVersionNotSupportedError");var fo="Request timed out",Dt=class extends ${name="GatewayTimeoutError";code="P5009";constructor(r,t=fo){super(t,R(r,!1))}};x(Dt,"GatewayTimeoutError");var af="Interactive transaction error",Ot=class extends ${name="InteractiveTransactionError";code="P5015";constructor(r,t=af){super(t,R(r,!1))}};x(Ot,"InteractiveTransactionError");var lf="Request parameters are invalid",kt=class extends ${name="InvalidRequestError";code="P5011";constructor(r,t=lf){super(t,R(r,!1))}};x(kt,"InvalidRequestError");var go="Requested resource does not exist",_t=class extends ${name="NotFoundError";code="P5003";constructor(r,t=go){super(t,R(r,!1))}};x(_t,"NotFoundError");var ho="Unknown server error",Ur=class extends ${name="ServerError";code="P5006";logs;constructor(r,t,n){super(t||ho,R(r,!0)),this.logs=n}};x(Ur,"ServerError");var yo="Unauthorized, check your connection string",Nt=class extends ${name="UnauthorizedError";code="P5007";constructor(r,t=yo){super(t,R(r,!1))}};x(Nt,"UnauthorizedError");var bo="Usage exceeded, retry again later",Lt=class extends ${name="UsageExceededError";code="P5008";constructor(r,t=bo){super(t,R(r,!0))}};x(Lt,"UsageExceededError");async function uf(e){let r;try{r=await e.text()}catch{return{type:"EmptyError"}}try{let t=JSON.parse(r);if(typeof t=="string")switch(t){case"InternalDataProxyError":return{type:"DataProxyError",body:t};default:return{type:"UnknownTextError",body:t}}if(typeof t=="object"&&t!==null){if("is_panic"in t&&"message"in t&&"error_code"in t)return{type:"QueryEngineError",body:t};if("EngineNotStarted"in t||"InteractiveTransactionMisrouted"in t||"InvalidRequestError"in t){let n=Object.values(t)[0].reason;return typeof n=="string"&&!["SchemaMissing","EngineVersionNotSupported"].includes(n)?{type:"UnknownJsonError",body:t}:{type:"DataProxyError",body:t}}}return{type:"UnknownJsonError",body:t}}catch{return r===""?{type:"EmptyError"}:{type:"UnknownTextError",body:r}}}async function Ft(e,r){if(e.ok)return;let t={clientVersion:r,response:e},n=await uf(e);if(n.type==="QueryEngineError")throw new z(n.body.message,{code:n.body.error_code,clientVersion:r});if(n.type==="DataProxyError"){if(n.body==="InternalDataProxyError")throw new Ur(t,"Internal Data Proxy error");if("EngineNotStarted"in n.body){if(n.body.EngineNotStarted.reason==="SchemaMissing")return new pr(t);if(n.body.EngineNotStarted.reason==="EngineVersionNotSupported")throw new It(t);if("EngineStartupError"in n.body.EngineNotStarted.reason){let{msg:i,logs:o}=n.body.EngineNotStarted.reason.EngineStartupError;throw new Ct(t,i,o)}if("KnownEngineStartupError"in n.body.EngineNotStarted.reason){let{msg:i,error_code:o}=n.body.EngineNotStarted.reason.KnownEngineStartupError;throw new P(i,r,o)}if("HealthcheckTimeout"in n.body.EngineNotStarted.reason){let{logs:i}=n.body.EngineNotStarted.reason.HealthcheckTimeout;throw new At(t,i)}}if("InteractiveTransactionMisrouted"in n.body){let i={IDParseError:"Could not parse interactive transaction ID",NoQueryEngineFoundError:"Could not find Query Engine for the specified host and transaction ID",TransactionStartError:"Could not start interactive transaction"};throw new Ot(t,i[n.body.InteractiveTransactionMisrouted.reason])}if("InvalidRequestError"in n.body)throw new kt(t,n.body.InvalidRequestError.reason)}if(e.status===401||e.status===403)throw new Nt(t,Gr(yo,n));if(e.status===404)return new _t(t,Gr(go,n));if(e.status===429)throw new Lt(t,Gr(bo,n));if(e.status===504)throw new Dt(t,Gr(fo,n));if(e.status>=500)throw new Ur(t,Gr(ho,n));if(e.status>=400)throw new Rt(t,Gr(mo,n))}function Gr(e,r){return r.type==="EmptyError"?e:`${e}: ${JSON.stringify(r)}`}function Tl(e){let r=Math.pow(2,e)*50,t=Math.ceil(Math.random()*r)-Math.ceil(r/2),n=r+t;return new Promise(i=>setTimeout(()=>i(n),n))}var $e="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";function Sl(e){let r=new TextEncoder().encode(e),t="",n=r.byteLength,i=n%3,o=n-i,s,a,l,u,c;for(let p=0;p<o;p=p+3)c=r[p]<<16|r[p+1]<<8|r[p+2],s=(c&16515072)>>18,a=(c&258048)>>12,l=(c&4032)>>6,u=c&63,t+=$e[s]+$e[a]+$e[l]+$e[u];return i==1?(c=r[o],s=(c&252)>>2,a=(c&3)<<4,t+=$e[s]+$e[a]+"=="):i==2&&(c=r[o]<<8|r[o+1],s=(c&64512)>>10,a=(c&1008)>>4,l=(c&15)<<2,t+=$e[s]+$e[a]+$e[l]+"="),t}function Rl(e){if(!!e.generator?.previewFeatures.some(t=>t.toLowerCase().includes("metrics")))throw new P("The `metrics` preview feature is not yet available with Accelerate.\nPlease remove `metrics` from the `previewFeatures` in your schema.\n\nMore information about Accelerate: https://pris.ly/d/accelerate",e.clientVersion)}var Al={"@prisma/debug":"workspace:*","@prisma/engines-version":"6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f","@prisma/fetch-engine":"workspace:*","@prisma/get-platform":"workspace:*"};var Mt=class extends oe{name="RequestError";code="P5010";constructor(r,t){super(`Cannot fetch data from service:
 ${r}`,R(t,!0))}};x(Mt,"RequestError");async function dr(e,r,t=n=>n){let{clientVersion:n,...i}=r,o=t(fetch);try{return await o(e,i)}catch(s){let a=s.message??"Unknown error";throw new Mt(a,{clientVersion:n,cause:s})}}var pf=/^[1-9][0-9]*\.[0-9]+\.[0-9]+$/,Cl=N("prisma:client:dataproxyEngine");async function df(e,r){let t=Al["@prisma/engines-version"],n=r.clientVersion??"unknown";if(process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION||globalThis.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION)return process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION||globalThis.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION;if(e.includes("accelerate")&&n!=="0.0.0"&&n!=="in-memory")return n;let[i,o]=n?.split("-")??[];if(o===void 0&&pf.test(i))return i;if(o!==void 0||n==="0.0.0"||n==="in-memory"){let[s]=t.split("-")??[],[a,l,u]=s.split("."),c=mf(`<=${a}.${l}.${u}`),p=await dr(c,{clientVersion:n});if(!p.ok)throw new Error(`Failed to fetch stable Prisma version, unpkg.com status ${p.status} ${p.statusText}, response body: ${await p.text()||"<empty body>"}`);let d=await p.text();Cl("length of body fetched from unpkg.com",d.length);let f;try{f=JSON.parse(d)}catch(h){throw console.error("JSON.parse error: body fetched from unpkg.com: ",d),h}return f.version}throw new cr("Only `major.minor.patch` versions are supported by Accelerate.",{clientVersion:n})}async function Il(e,r){let t=await df(e,r);return Cl("version",t),t}function mf(e){return encodeURI(`https://unpkg.com/prisma@${e}/package.json`)}var Dl=3,$t=N("prisma:client:dataproxyEngine"),qt=class{name="DataProxyEngine";inlineSchema;inlineSchemaHash;inlineDatasources;config;logEmitter;env;clientVersion;engineHash;tracingHelper;remoteClientVersion;host;headerBuilder;startPromise;protocol;constructor(r){Rl(r),this.config=r,this.env=r.env,this.inlineSchema=Sl(r.inlineSchema),this.inlineDatasources=r.inlineDatasources,this.inlineSchemaHash=r.inlineSchemaHash,this.clientVersion=r.clientVersion,this.engineHash=r.engineVersion,this.logEmitter=r.logEmitter,this.tracingHelper=r.tracingHelper}apiKey(){return this.headerBuilder.apiKey}version(){return this.engineHash}async start(){this.startPromise!==void 0&&await this.startPromise,this.startPromise=(async()=>{let{apiKey:r,url:t}=this.getURLAndAPIKey();this.host=t.host,this.protocol=t.protocol,this.headerBuilder=new Yn({apiKey:r,tracingHelper:this.tracingHelper,logLevel:this.config.logLevel??"error",logQueries:this.config.logQueries,engineHash:this.engineHash}),this.remoteClientVersion=await Il(this.host,this.config),$t("host",this.host),$t("protocol",this.protocol)})(),await this.startPromise}async stop(){}propagateResponseExtensions(r){r?.logs?.length&&r.logs.forEach(t=>{switch(t.level){case"debug":case"trace":$t(t);break;case"error":case"warn":case"info":{this.logEmitter.emit(t.level,{timestamp:po(t.timestamp),message:t.attributes.message??"",target:t.target??"BinaryEngine"});break}case"query":{this.logEmitter.emit("query",{query:t.attributes.query??"",timestamp:po(t.timestamp),duration:t.attributes.duration_ms??0,params:t.attributes.params??"",target:t.target??"BinaryEngine"});break}default:t.level}}),r?.traces?.length&&this.tracingHelper.dispatchEngineSpans(r.traces)}onBeforeExit(){throw new Error('"beforeExit" hook is not applicable to the remote query engine')}async url(r){return await this.start(),`${this.protocol}//${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${r}`}async uploadSchema(){let r={name:"schemaUpload",internal:!0};return this.tracingHelper.runInChildSpan(r,async()=>{let t=await dr(await this.url("schema"),{method:"PUT",headers:this.headerBuilder.build(),body:this.inlineSchema,clientVersion:this.clientVersion});t.ok||$t("schema response status",t.status);let n=await Ft(t,this.clientVersion);if(n)throw this.logEmitter.emit("warn",{message:`Error while uploading schema: ${n.message}`,timestamp:new Date,target:""}),n;this.logEmitter.emit("info",{message:`Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,timestamp:new Date,target:""})})}request(r,{traceparent:t,interactiveTransaction:n,customDataProxyFetch:i}){return this.requestInternal({body:r,traceparent:t,interactiveTransaction:n,customDataProxyFetch:i})}async requestBatch(r,{traceparent:t,transaction:n,customDataProxyFetch:i}){let o=n?.kind==="itx"?n.options:void 0,s=Mr(r,n);return(await this.requestInternal({body:s,customDataProxyFetch:i,interactiveTransaction:o,traceparent:t})).map(l=>(l.extensions&&this.propagateResponseExtensions(l.extensions),"errors"in l?this.convertProtocolErrorsToClientError(l.errors):l))}requestInternal({body:r,traceparent:t,customDataProxyFetch:n,interactiveTransaction:i}){return this.withRetry({actionGerund:"querying",callback:async({logHttpCall:o})=>{let s=i?`${i.payload.endpoint}/graphql`:await this.url("graphql");o(s);let a=await dr(s,{method:"POST",headers:this.headerBuilder.build({traceparent:t,transactionId:i?.id}),body:JSON.stringify(r),clientVersion:this.clientVersion},n);a.ok||$t("graphql response status",a.status),await this.handleError(await Ft(a,this.clientVersion));let l=await a.json();if(l.extensions&&this.propagateResponseExtensions(l.extensions),"errors"in l)throw this.convertProtocolErrorsToClientError(l.errors);return"batchResult"in l?l.batchResult:l}})}async transaction(r,t,n){let i={start:"starting",commit:"committing",rollback:"rolling back"};return this.withRetry({actionGerund:`${i[r]} transaction`,callback:async({logHttpCall:o})=>{if(r==="start"){let s=JSON.stringify({max_wait:n.maxWait,timeout:n.timeout,isolation_level:n.isolationLevel}),a=await this.url("transaction/start");o(a);let l=await dr(a,{method:"POST",headers:this.headerBuilder.build({traceparent:t.traceparent}),body:s,clientVersion:this.clientVersion});await this.handleError(await Ft(l,this.clientVersion));let u=await l.json(),{extensions:c}=u;c&&this.propagateResponseExtensions(c);let p=u.id,d=u["data-proxy"].endpoint;return{id:p,payload:{endpoint:d}}}else{let s=`${n.payload.endpoint}/${r}`;o(s);let a=await dr(s,{method:"POST",headers:this.headerBuilder.build({traceparent:t.traceparent}),clientVersion:this.clientVersion});await this.handleError(await Ft(a,this.clientVersion));let l=await a.json(),{extensions:u}=l;u&&this.propagateResponseExtensions(u);return}}})}getURLAndAPIKey(){return vl({clientVersion:this.clientVersion,env:this.env,inlineDatasources:this.inlineDatasources,overrideDatasources:this.config.overrideDatasources})}metrics(){throw new cr("Metrics are not yet supported for Accelerate",{clientVersion:this.clientVersion})}async withRetry(r){for(let t=0;;t++){let n=i=>{this.logEmitter.emit("info",{message:`Calling ${i} (n=${t})`,timestamp:new Date,target:""})};try{return await r.callback({logHttpCall:n})}catch(i){if(!(i instanceof oe)||!i.isRetryable)throw i;if(t>=Dl)throw i instanceof Br?i.cause:i;this.logEmitter.emit("warn",{message:`Attempt ${t+1}/${Dl} failed for ${r.actionGerund}: ${i.message??"(unknown)"}`,timestamp:new Date,target:""});let o=await Tl(t);this.logEmitter.emit("warn",{message:`Retrying after ${o}ms`,timestamp:new Date,target:""})}}}async handleError(r){if(r instanceof pr)throw await this.uploadSchema(),new Br({clientVersion:this.clientVersion,cause:r});if(r)throw r}convertProtocolErrorsToClientError(r){return r.length===1?$r(r[0],this.config.clientVersion,this.config.activeProvider):new V(JSON.stringify(r),{clientVersion:this.config.clientVersion})}applyPendingMigrations(){throw new Error("Method not implemented.")}};function Ol(e){if(e?.kind==="itx")return e.options.id}var wo=O(__webpack_require__(/*! node:os */ "node:os")),kl=O(__webpack_require__(/*! node:path */ "node:path"));var Eo=Symbol("PrismaLibraryEngineCache");function ff(){let e=globalThis;return e[Eo]===void 0&&(e[Eo]={}),e[Eo]}function gf(e){let r=ff();if(r[e]!==void 0)return r[e];let t=kl.default.toNamespacedPath(e),n={exports:{}},i=0;return process.platform!=="win32"&&(i=wo.default.constants.dlopen.RTLD_LAZY|wo.default.constants.dlopen.RTLD_DEEPBIND),process.dlopen(n,t,i),r[e]=n.exports,n.exports}var _l={async loadLibrary(e){let r=await fi(),t=await ml("library",e);try{return e.tracingHelper.runInChildSpan({name:"loadLibrary",internal:!0},()=>gf(t))}catch(n){let i=Ai({e:n,platformInfo:r,id:t});throw new P(i,e.clientVersion)}}};var xo,Nl={async loadLibrary(e){let{clientVersion:r,adapter:t,engineWasm:n}=e;if(t===void 0)throw new P(`The \`adapter\` option for \`PrismaClient\` is required in this context (${Kn().prettyName})`,r);if(n===void 0)throw new P("WASM engine was unexpectedly `undefined`",r);xo===void 0&&(xo=(async()=>{let o=await n.getRuntime(),s=await n.getQueryEngineWasmModule();if(s==null)throw new P("The loaded wasm module was unexpectedly `undefined` or `null` once loaded",r);let a={"./query_engine_bg.js":o},l=new WebAssembly.Instance(s,a),u=l.exports.__wbindgen_start;return o.__wbg_set_wasm(l.exports),u(),o.QueryEngine})());let i=await xo;return{debugPanic(){return Promise.reject("{}")},dmmf(){return Promise.resolve("{}")},version(){return{commit:"unknown",version:"unknown"}},QueryEngine:i}}};var hf="P2036",Re=N("prisma:client:libraryEngine");function yf(e){return e.item_type==="query"&&"query"in e}function bf(e){return"level"in e?e.level==="error"&&e.message==="PANIC":!1}var Ll=[...li,"native"],Ef=0xffffffffffffffffn,vo=1n;function wf(){let e=vo++;return vo>Ef&&(vo=1n),e}var Qr=class{name="LibraryEngine";engine;libraryInstantiationPromise;libraryStartingPromise;libraryStoppingPromise;libraryStarted;executingQueryPromise;config;QueryEngineConstructor;libraryLoader;library;logEmitter;libQueryEnginePath;binaryTarget;datasourceOverrides;datamodel;logQueries;logLevel;lastQuery;loggerRustPanic;tracingHelper;adapterPromise;versionInfo;constructor(r,t){this.libraryLoader=t??_l,r.engineWasm!==void 0&&(this.libraryLoader=t??Nl),this.config=r,this.libraryStarted=!1,this.logQueries=r.logQueries??!1,this.logLevel=r.logLevel??"error",this.logEmitter=r.logEmitter,this.datamodel=r.inlineSchema,this.tracingHelper=r.tracingHelper,r.enableDebugLogs&&(this.logLevel="debug");let n=Object.keys(r.overrideDatasources)[0],i=r.overrideDatasources[n]?.url;n!==void 0&&i!==void 0&&(this.datasourceOverrides={[n]:i}),this.libraryInstantiationPromise=this.instantiateLibrary()}wrapEngine(r){return{applyPendingMigrations:r.applyPendingMigrations?.bind(r),commitTransaction:this.withRequestId(r.commitTransaction.bind(r)),connect:this.withRequestId(r.connect.bind(r)),disconnect:this.withRequestId(r.disconnect.bind(r)),metrics:r.metrics?.bind(r),query:this.withRequestId(r.query.bind(r)),rollbackTransaction:this.withRequestId(r.rollbackTransaction.bind(r)),sdlSchema:r.sdlSchema?.bind(r),startTransaction:this.withRequestId(r.startTransaction.bind(r)),trace:r.trace.bind(r),free:r.free?.bind(r)}}withRequestId(r){return async(...t)=>{let n=wf().toString();try{return await r(...t,n)}finally{if(this.tracingHelper.isEnabled()){let i=await this.engine?.trace(n);if(i){let o=JSON.parse(i);this.tracingHelper.dispatchEngineSpans(o.spans)}}}}}async applyPendingMigrations(){throw new Error("Cannot call this method from this type of engine instance")}async transaction(r,t,n){await this.start();let i=await this.adapterPromise,o=JSON.stringify(t),s;if(r==="start"){let l=JSON.stringify({max_wait:n.maxWait,timeout:n.timeout,isolation_level:n.isolationLevel});s=await this.engine?.startTransaction(l,o)}else r==="commit"?s=await this.engine?.commitTransaction(n.id,o):r==="rollback"&&(s=await this.engine?.rollbackTransaction(n.id,o));let a=this.parseEngineResponse(s);if(xf(a)){let l=this.getExternalAdapterError(a,i?.errorRegistry);throw l?l.error:new z(a.message,{code:a.error_code,clientVersion:this.config.clientVersion,meta:a.meta})}else if(typeof a.message=="string")throw new V(a.message,{clientVersion:this.config.clientVersion});return a}async instantiateLibrary(){if(Re("internalSetup"),this.libraryInstantiationPromise)return this.libraryInstantiationPromise;ai(),this.binaryTarget=await this.getCurrentBinaryTarget(),await this.tracingHelper.runInChildSpan("load_engine",()=>this.loadEngine()),this.version()}async getCurrentBinaryTarget(){{if(this.binaryTarget)return this.binaryTarget;let r=await this.tracingHelper.runInChildSpan("detect_platform",()=>ir());if(!Ll.includes(r))throw new P(`Unknown ${ce("PRISMA_QUERY_ENGINE_LIBRARY")} ${ce(W(r))}. Possible binaryTargets: ${qe(Ll.join(", "))} or a path to the query engine library.
 You may have to run ${qe("prisma generate")} for your changes to take effect.`,this.config.clientVersion);return r}}parseEngineResponse(r){if(!r)throw new V("Response from the Engine was empty",{clientVersion:this.config.clientVersion});try{return JSON.parse(r)}catch{throw new V("Unable to JSON.parse response from engine",{clientVersion:this.config.clientVersion})}}async loadEngine(){if(!this.engine){this.QueryEngineConstructor||(this.library=await this.libraryLoader.loadLibrary(this.config),this.QueryEngineConstructor=this.library.QueryEngine);try{let r=new WeakRef(this);this.adapterPromise||(this.adapterPromise=this.config.adapter?.connect()?.then(tn));let t=await this.adapterPromise;t&&Re("Using driver adapter: %O",t),this.engine=this.wrapEngine(new this.QueryEngineConstructor({datamodel:this.datamodel,env:process.env,logQueries:this.config.logQueries??!1,ignoreEnvVarErrors:!0,datasourceOverrides:this.datasourceOverrides??{},logLevel:this.logLevel,configDir:this.config.cwd,engineProtocol:"json",enableTracing:this.tracingHelper.isEnabled()},n=>{r.deref()?.logger(n)},t))}catch(r){let t=r,n=this.parseInitError(t.message);throw typeof n=="string"?t:new P(n.message,this.config.clientVersion,n.error_code)}}}logger(r){let t=this.parseEngineResponse(r);t&&(t.level=t?.level.toLowerCase()??"unknown",yf(t)?this.logEmitter.emit("query",{timestamp:new Date,query:t.query,params:t.params,duration:Number(t.duration_ms),target:t.module_path}):bf(t)?this.loggerRustPanic=new ae(Po(this,`${t.message}: ${t.reason} in ${t.file}:${t.line}:${t.column}`),this.config.clientVersion):this.logEmitter.emit(t.level,{timestamp:new Date,message:t.message,target:t.module_path}))}parseInitError(r){try{return JSON.parse(r)}catch{}return r}parseRequestError(r){try{return JSON.parse(r)}catch{}return r}onBeforeExit(){throw new Error('"beforeExit" hook is not applicable to the library engine since Prisma 5.0.0, it is only relevant and implemented for the binary engine. Please add your event listener to the `process` object directly instead.')}async start(){if(this.libraryInstantiationPromise||(this.libraryInstantiationPromise=this.instantiateLibrary()),await this.libraryInstantiationPromise,await this.libraryStoppingPromise,this.libraryStartingPromise)return Re(`library already starting, this.libraryStarted: ${this.libraryStarted}`),this.libraryStartingPromise;if(this.libraryStarted)return;let r=async()=>{Re("library starting");try{let t={traceparent:this.tracingHelper.getTraceParent()};await this.engine?.connect(JSON.stringify(t)),this.libraryStarted=!0,this.adapterPromise||(this.adapterPromise=this.config.adapter?.connect()?.then(tn)),await this.adapterPromise,Re("library started")}catch(t){let n=this.parseInitError(t.message);throw typeof n=="string"?t:new P(n.message,this.config.clientVersion,n.error_code)}finally{this.libraryStartingPromise=void 0}};return this.libraryStartingPromise=this.tracingHelper.runInChildSpan("connect",r),this.libraryStartingPromise}async stop(){if(await this.libraryInstantiationPromise,await this.libraryStartingPromise,await this.executingQueryPromise,this.libraryStoppingPromise)return Re("library is already stopping"),this.libraryStoppingPromise;if(!this.libraryStarted){await(await this.adapterPromise)?.dispose(),this.adapterPromise=void 0;return}let r=async()=>{await new Promise(n=>setImmediate(n)),Re("library stopping");let t={traceparent:this.tracingHelper.getTraceParent()};await this.engine?.disconnect(JSON.stringify(t)),this.engine?.free&&this.engine.free(),this.engine=void 0,this.libraryStarted=!1,this.libraryStoppingPromise=void 0,this.libraryInstantiationPromise=void 0,await(await this.adapterPromise)?.dispose(),this.adapterPromise=void 0,Re("library stopped")};return this.libraryStoppingPromise=this.tracingHelper.runInChildSpan("disconnect",r),this.libraryStoppingPromise}version(){return this.versionInfo=this.library?.version(),this.versionInfo?.version??"unknown"}debugPanic(r){return this.library?.debugPanic(r)}async request(r,{traceparent:t,interactiveTransaction:n}){Re(`sending request, this.libraryStarted: ${this.libraryStarted}`);let i=JSON.stringify({traceparent:t}),o=JSON.stringify(r);try{await this.start();let s=await this.adapterPromise;this.executingQueryPromise=this.engine?.query(o,i,n?.id),this.lastQuery=o;let a=this.parseEngineResponse(await this.executingQueryPromise);if(a.errors)throw a.errors.length===1?this.buildQueryError(a.errors[0],s?.errorRegistry):new V(JSON.stringify(a.errors),{clientVersion:this.config.clientVersion});if(this.loggerRustPanic)throw this.loggerRustPanic;return{data:a}}catch(s){if(s instanceof P)throw s;if(s.code==="GenericFailure"&&s.message?.startsWith("PANIC:"))throw new ae(Po(this,s.message),this.config.clientVersion);let a=this.parseRequestError(s.message);throw typeof a=="string"?s:new V(`${a.message}
 ${a.backtrace}`,{clientVersion:this.config.clientVersion})}}async requestBatch(r,{transaction:t,traceparent:n}){Re("requestBatch");let i=Mr(r,t);await this.start();let o=await this.adapterPromise;this.lastQuery=JSON.stringify(i),this.executingQueryPromise=this.engine?.query(this.lastQuery,JSON.stringify({traceparent:n}),Ol(t));let s=await this.executingQueryPromise,a=this.parseEngineResponse(s);if(a.errors)throw a.errors.length===1?this.buildQueryError(a.errors[0],o?.errorRegistry):new V(JSON.stringify(a.errors),{clientVersion:this.config.clientVersion});let{batchResult:l,errors:u}=a;if(Array.isArray(l))return l.map(c=>c.errors&&c.errors.length>0?this.loggerRustPanic??this.buildQueryError(c.errors[0],o?.errorRegistry):{data:c});throw u&&u.length===1?new Error(u[0].error):new Error(JSON.stringify(a))}buildQueryError(r,t){if(r.user_facing_error.is_panic)return new ae(Po(this,r.user_facing_error.message),this.config.clientVersion);let n=this.getExternalAdapterError(r.user_facing_error,t);return n?n.error:$r(r,this.config.clientVersion,this.config.activeProvider)}getExternalAdapterError(r,t){if(r.error_code===hf&&t){let n=r.meta?.id;ln(typeof n=="number","Malformed external JS error received from the engine");let i=t.consumeError(n);return ln(i,"External error with reported id was not registered"),i}}async metrics(r){await this.start();let t=await this.engine.metrics(JSON.stringify(r));return r.format==="prometheus"?t:this.parseEngineResponse(t)}};function xf(e){return typeof e=="object"&&e!==null&&e.error_code!==void 0}function Po(e,r){return El({binaryTarget:e.binaryTarget,title:r,version:e.config.clientVersion,engineVersion:e.versionInfo?.commit,database:e.config.activeProvider,query:e.lastQuery})}function Fl({url:e,adapter:r,copyEngine:t,targetBuildType:n}){let i=[],o=[],s=g=>{i.push({_tag:"warning",value:g})},a=g=>{let I=g.join(`
@@ -470,7 +523,6 @@ let HashingModule = class HashingModule {
 };
 exports.HashingModule = HashingModule;
 exports.HashingModule = HashingModule = __decorate([
-    (0, common_1.Global)(),
     (0, common_1.Module)({
         providers: [hashing_service_1.HashingService],
         exports: [hashing_service_1.HashingService],
@@ -666,7 +718,7 @@ const getLoggerConfig = () => {
     return {
         level: level(),
         levels,
-        format: winston.format.combine(winston.format.errors({ stack: true }), winston.format.metadata(), nest_winston_1.utilities.format.nestLike('MyApp', {
+        format: winston.format.combine(winston.format.errors({ stack: true }), winston.format.metadata(), nest_winston_1.utilities.format.nestLike(process.env.APP_NAME, {
             colors: true,
             prettyPrint: true,
             processId: true,
@@ -1441,9 +1493,9 @@ exports.RedisService = RedisService = RedisService_1 = __decorate([
 
 /***/ }),
 
-/***/ "./libs/sms/src/index.ts":
+/***/ "./libs/sns/src/index.ts":
 /*!*******************************!*\
-  !*** ./libs/sms/src/index.ts ***!
+  !*** ./libs/sns/src/index.ts ***!
   \*******************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -1464,15 +1516,15 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__webpack_require__(/*! ./sms.module */ "./libs/sms/src/sms.module.ts"), exports);
-__exportStar(__webpack_require__(/*! ./sms.service */ "./libs/sms/src/sms.service.ts"), exports);
+__exportStar(__webpack_require__(/*! ./sns.module */ "./libs/sns/src/sns.module.ts"), exports);
+__exportStar(__webpack_require__(/*! ./sns.service */ "./libs/sns/src/sns.service.ts"), exports);
 
 
 /***/ }),
 
-/***/ "./libs/sms/src/sms.module.ts":
+/***/ "./libs/sns/src/sns.module.ts":
 /*!************************************!*\
-  !*** ./libs/sms/src/sms.module.ts ***!
+  !*** ./libs/sns/src/sns.module.ts ***!
   \************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -1485,25 +1537,25 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmsModule = void 0;
+exports.SnsModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const sms_service_1 = __webpack_require__(/*! ./sms.service */ "./libs/sms/src/sms.service.ts");
-let SmsModule = class SmsModule {
+const sns_service_1 = __webpack_require__(/*! ./sns.service */ "./libs/sns/src/sns.service.ts");
+let SnsModule = class SnsModule {
 };
-exports.SmsModule = SmsModule;
-exports.SmsModule = SmsModule = __decorate([
+exports.SnsModule = SnsModule;
+exports.SnsModule = SnsModule = __decorate([
     (0, common_1.Module)({
-        providers: [sms_service_1.SmsService],
-        exports: [sms_service_1.SmsService],
+        providers: [sns_service_1.SnsService],
+        exports: [sns_service_1.SnsService],
     })
-], SmsModule);
+], SnsModule);
 
 
 /***/ }),
 
-/***/ "./libs/sms/src/sms.service.ts":
+/***/ "./libs/sns/src/sns.service.ts":
 /*!*************************************!*\
-  !*** ./libs/sms/src/sms.service.ts ***!
+  !*** ./libs/sns/src/sns.service.ts ***!
   \*************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -1518,39 +1570,47 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var SnsService_1;
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SmsService = void 0;
-const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+exports.SnsService = void 0;
+const config_1 = __webpack_require__(/*! @/shared/config */ "./src/shared/config/index.ts");
 const client_sns_1 = __webpack_require__(/*! @aws-sdk/client-sns */ "@aws-sdk/client-sns");
-const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
-const config_2 = __webpack_require__(/*! @/shared/config */ "./src/shared/config/index.ts");
-let SmsService = class SmsService {
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_2 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+let SnsService = SnsService_1 = class SnsService {
     config;
     snsClient;
+    logger = new common_1.Logger(SnsService_1.name);
     constructor(config) {
         this.config = config;
         this.snsClient = new client_sns_1.SNSClient({
-            region: this.config.get(config_2.Env.AWS_REGION),
+            region: this.config.get(config_1.Env.AWS_REGION),
             credentials: {
-                accessKeyId: this.config.get(config_2.Env.AWS_ACCESS_KEY_ID),
-                secretAccessKey: this.config.get(config_2.Env.AWS_SECRET_ACCESS_KEY),
+                accessKeyId: this.config.get(config_1.Env.AWS_ACCESS_KEY_ID),
+                secretAccessKey: this.config.get(config_1.Env.AWS_SECRET_ACCESS_KEY),
             },
         });
     }
-    async sendVerificationCode(phoneNumber, code) {
-        const command = new client_sns_1.PublishCommand({
-            PhoneNumber: phoneNumber,
-            Message: `Your verification code is: ${code}`,
-        });
-        await this.snsClient.send(command);
+    async send(phoneNumber, message) {
+        try {
+            const command = new client_sns_1.PublishCommand({
+                PhoneNumber: phoneNumber,
+                Message: message,
+            });
+            await this.snsClient.send(command);
+        }
+        catch (error) {
+            this.logger.error(`Failed to send SMS to ${phoneNumber}: ${error.message}`);
+            throw new common_1.InternalServerErrorException('Failed to send SMS message');
+        }
     }
 };
-exports.SmsService = SmsService;
-exports.SmsService = SmsService = __decorate([
+exports.SnsService = SnsService;
+exports.SnsService = SnsService = SnsService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _a : Object])
-], SmsService);
+    __metadata("design:paramtypes", [typeof (_a = typeof config_2.ConfigService !== "undefined" && config_2.ConfigService) === "function" ? _a : Object])
+], SnsService);
 
 
 /***/ }),
@@ -1574,7 +1634,6 @@ exports.AppModule = void 0;
 const config_1 = __webpack_require__(/*! @/shared/config */ "./src/shared/config/index.ts");
 const interceptors_1 = __webpack_require__(/*! @/shared/interceptors */ "./src/shared/interceptors/index.ts");
 const middlewares_1 = __webpack_require__(/*! @/shared/middlewares */ "./src/shared/middlewares/index.ts");
-const hashing_1 = __webpack_require__(/*! @app/hashing */ "./libs/hashing/src/index.ts");
 const prisma_1 = __webpack_require__(/*! @app/prisma */ "./libs/prisma/src/index.ts");
 const redis_1 = __webpack_require__(/*! @app/redis */ "./libs/redis/src/index.ts");
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -1586,6 +1645,10 @@ const setup_1 = __webpack_require__(/*! @sentry/nestjs/setup */ "@sentry/nestjs/
 const auth_module_1 = __webpack_require__(/*! ./auth/auth.module */ "./src/auth/auth.module.ts");
 const users_module_1 = __webpack_require__(/*! ./users/users.module */ "./src/users/users.module.ts");
 const logger_1 = __webpack_require__(/*! @app/logger */ "./libs/logger/src/index.ts");
+const workspaces_module_1 = __webpack_require__(/*! ./workspaces/workspaces.module */ "./src/workspaces/workspaces.module.ts");
+const members_module_1 = __webpack_require__(/*! ./members/members.module */ "./src/members/members.module.ts");
+const invitations_module_1 = __webpack_require__(/*! ./invitations/invitations.module */ "./src/invitations/invitations.module.ts");
+const dist_1 = __webpack_require__(/*! ncsrf/dist */ "ncsrf/dist");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(middlewares_1.SecurityHeadersMiddleware).forRoutes('*');
@@ -1609,11 +1672,13 @@ exports.AppModule = AppModule = __decorate([
             schedule_1.ScheduleModule.forRoot(),
             setup_1.SentryModule.forRoot(),
             logger_1.LoggerModule,
-            hashing_1.HashingModule,
             prisma_1.PrismaModule,
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             redis_1.RedisModule,
+            workspaces_module_1.WorkspacesModule,
+            members_module_1.MembersModule,
+            invitations_module_1.InvitationsModule,
         ],
         providers: [
             {
@@ -1625,6 +1690,7 @@ exports.AppModule = AppModule = __decorate([
                 useClass: interceptors_1.LoggingInterceptor,
             },
             { provide: core_1.APP_FILTER, useClass: setup_1.SentryGlobalFilter },
+            { provide: core_1.APP_FILTER, useClass: dist_1.CsrfFilter },
         ],
     })
 ], AppModule);
@@ -1688,7 +1754,6 @@ const dto_1 = __webpack_require__(/*! @/auth/dto */ "./src/auth/dto/index.ts");
 const guards_1 = __webpack_require__(/*! @/auth/guards */ "./src/auth/guards/index.ts");
 const guards_2 = __webpack_require__(/*! @/shared/guards */ "./src/shared/guards/index.ts");
 const session_utils_1 = __webpack_require__(/*! @/shared/utils/session.utils */ "./src/shared/utils/session.utils.ts");
-const user_entity_1 = __webpack_require__(/*! @/users/user.entity */ "./src/users/user.entity.ts");
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 const throttler_1 = __webpack_require__(/*! @nestjs/throttler */ "@nestjs/throttler");
@@ -1714,7 +1779,7 @@ let AuthController = AuthController_1 = class AuthController {
     async signIn(req, session) {
         if (!req.user)
             throw new Error('User not found');
-        const user = new user_entity_1.UserEntity(req.user);
+        const user = req.user;
         if (user.requires2FA) {
             await (0, session_utils_1.updateSession)(session, {
                 pending2FA: { userId: user.id, timestamp: Date.now() },
@@ -1785,7 +1850,6 @@ __decorate([
     (0, swagger_1.ApiBody)({ type: dto_1.SignUpInput }),
     (0, swagger_1.ApiCreatedResponse)({
         description: 'User account created successfully and user is signed in',
-        type: user_entity_1.UserEntity,
     }),
     (0, swagger_1.ApiConflictResponse)({
         description: 'Username or email already exists in the system',
@@ -1912,7 +1976,7 @@ __decorate([
     __param(1, (0, common_1.Session)()),
     __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_k = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _k : Object, typeof (_l = typeof auth_types_1.TSession !== "undefined" && auth_types_1.TSession) === "function" ? _l : Object, typeof (_m = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _m : Object]),
+    __metadata("design:paramtypes", [Object, typeof (_l = typeof auth_types_1.TSession !== "undefined" && auth_types_1.TSession) === "function" ? _l : Object, typeof (_m = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _m : Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "googleCallback", null);
 __decorate([
@@ -1953,7 +2017,7 @@ __decorate([
     __param(1, (0, common_1.Session)()),
     __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_o = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _o : Object, typeof (_p = typeof auth_types_1.TSession !== "undefined" && auth_types_1.TSession) === "function" ? _p : Object, typeof (_q = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _q : Object]),
+    __metadata("design:paramtypes", [Object, typeof (_p = typeof auth_types_1.TSession !== "undefined" && auth_types_1.TSession) === "function" ? _p : Object, typeof (_q = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _q : Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "githubCallback", null);
 __decorate([
@@ -1966,7 +2030,6 @@ __decorate([
     (0, swagger_1.ApiBody)({ type: dto_1.Verify2FAInput }),
     (0, swagger_1.ApiOkResponse)({
         description: '2FA verified successfully and session created',
-        type: user_entity_1.UserEntity,
     }),
     (0, swagger_1.ApiBadRequestResponse)({
         description: 'Invalid 2FA code or no pending 2FA verification',
@@ -2032,14 +2095,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthModule = void 0;
 const serializers_1 = __webpack_require__(/*! @/auth/serializers */ "./src/auth/serializers/index.ts");
+const two_factor_module_1 = __webpack_require__(/*! @/auth/two-factor/two-factor.module */ "./src/auth/two-factor/two-factor.module.ts");
 const users_module_1 = __webpack_require__(/*! @/users/users.module */ "./src/users/users.module.ts");
+const hashing_1 = __webpack_require__(/*! @app/hashing */ "./libs/hashing/src/index.ts");
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const auth_controller_1 = __webpack_require__(/*! ./auth.controller */ "./src/auth/auth.controller.ts");
 const auth_service_1 = __webpack_require__(/*! ./auth.service */ "./src/auth/auth.service.ts");
 const email_verification_module_1 = __webpack_require__(/*! ./email-verification/email-verification.module */ "./src/auth/email-verification/email-verification.module.ts");
 const password_module_1 = __webpack_require__(/*! ./password/password.module */ "./src/auth/password/password.module.ts");
 const strategy_1 = __webpack_require__(/*! ./strategy */ "./src/auth/strategy/index.ts");
-const two_factor_module_1 = __webpack_require__(/*! @/auth/two-factor/two-factor.module */ "./src/auth/two-factor/two-factor.module.ts");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -2058,6 +2122,7 @@ exports.AuthModule = AuthModule = __decorate([
             password_module_1.PasswordModule,
             users_module_1.UsersModule,
             two_factor_module_1.TwoFactorModule,
+            hashing_1.HashingModule,
         ],
     })
 ], AuthModule);
@@ -2109,7 +2174,7 @@ var AuthService_1;
 var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthService = void 0;
-const user_entity_1 = __webpack_require__(/*! @/users/user.entity */ "./src/users/user.entity.ts");
+const interfaces_1 = __webpack_require__(/*! @/users/interfaces */ "./src/users/interfaces/index.ts");
 const users_repository_1 = __webpack_require__(/*! @/users/users.repository */ "./src/users/users.repository.ts");
 const hashing_1 = __webpack_require__(/*! @app/hashing */ "./libs/hashing/src/index.ts");
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -2139,12 +2204,12 @@ let AuthService = AuthService_1 = class AuthService {
                 lastName: dto.lastName,
             });
             await this.usersRepository.updateVerificationStatus(newUser.id);
-            return new user_entity_1.UserEntity(newUser);
+            return (0, interfaces_1.toSafeUser)(newUser);
         }
         if (!existingUser.emailVerified) {
             await this.usersRepository.updateVerificationStatus(existingUser.id);
         }
-        return new user_entity_1.UserEntity(existingUser);
+        return (0, interfaces_1.toSafeUser)(existingUser);
     }
     async signUp(dto) {
         const existingUser = await this.usersRepository.findByEmailOrUsername(dto.email, dto.username);
@@ -2165,7 +2230,7 @@ let AuthService = AuthService_1 = class AuthService {
             lastName: dto.lastName,
         });
         this.logger.log(`New user registered: ${newUser.id}`);
-        return new user_entity_1.UserEntity(newUser);
+        return (0, interfaces_1.toSafeUser)(newUser);
     }
     async signIn(dto) {
         const user = await this.usersRepository.findByEmail(dto.email);
@@ -2188,10 +2253,10 @@ let AuthService = AuthService_1 = class AuthService {
         await this.resetFailedAttempts(user.id);
         const has2FA = await this.twoFactorService.has2FAEnabled(user.id);
         if (has2FA) {
-            const userEntity = new user_entity_1.UserEntity(user);
-            return Object.assign(userEntity, { requires2FA: true });
+            const safeUser = (0, interfaces_1.toSafeUser)(user);
+            return Object.assign(safeUser, { requires2FA: true });
         }
-        return new user_entity_1.UserEntity(user);
+        return (0, interfaces_1.toSafeUser)(user);
     }
     async resetFailedAttempts(userId) {
         await this.usersRepository.resetFailedLoginAttempts(userId);
@@ -2224,7 +2289,7 @@ let AuthService = AuthService_1 = class AuthService {
         if (!user) {
             throw new common_1.BadRequestException('User not found');
         }
-        return new user_entity_1.UserEntity(user);
+        return (0, interfaces_1.toSafeUser)(user);
     }
 };
 exports.AuthService = AuthService;
@@ -2609,7 +2674,7 @@ exports.EmailVerificationController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const email_verification_service_1 = __webpack_require__(/*! ./email-verification.service */ "./src/auth/email-verification/email-verification.service.ts");
 const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
-const user_entity_1 = __webpack_require__(/*! @/users/user.entity */ "./src/users/user.entity.ts");
+const interfaces_1 = __webpack_require__(/*! @/users/interfaces */ "./src/users/interfaces/index.ts");
 const decorators_1 = __webpack_require__(/*! @/shared/decorators */ "./src/shared/decorators/index.ts");
 const guards_1 = __webpack_require__(/*! @/shared/guards */ "./src/shared/guards/index.ts");
 const dto_1 = __webpack_require__(/*! @/auth/email-verification/dto */ "./src/auth/email-verification/dto/index.ts");
@@ -2666,7 +2731,7 @@ __decorate([
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, decorators_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof user_entity_1.UserEntity !== "undefined" && user_entity_1.UserEntity) === "function" ? _b : Object]),
+    __metadata("design:paramtypes", [typeof (_b = typeof interfaces_1.SafeUser !== "undefined" && interfaces_1.SafeUser) === "function" ? _b : Object]),
     __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
 ], EmailVerificationController.prototype, "sendVerificationCode", null);
 __decorate([
@@ -2699,7 +2764,7 @@ __decorate([
     __param(1, (0, decorators_1.CurrentUser)()),
     __param(2, (0, common_1.Session)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof dto_1.VerifyEmailInput !== "undefined" && dto_1.VerifyEmailInput) === "function" ? _d : Object, typeof (_e = typeof user_entity_1.UserEntity !== "undefined" && user_entity_1.UserEntity) === "function" ? _e : Object, typeof (_f = typeof auth_types_1.TSession !== "undefined" && auth_types_1.TSession) === "function" ? _f : Object]),
+    __metadata("design:paramtypes", [typeof (_d = typeof dto_1.VerifyEmailInput !== "undefined" && dto_1.VerifyEmailInput) === "function" ? _d : Object, typeof (_e = typeof interfaces_1.SafeUser !== "undefined" && interfaces_1.SafeUser) === "function" ? _e : Object, typeof (_f = typeof auth_types_1.TSession !== "undefined" && auth_types_1.TSession) === "function" ? _f : Object]),
     __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
 ], EmailVerificationController.prototype, "verifyEmail", null);
 __decorate([
@@ -2737,18 +2802,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EmailVerificationModule = void 0;
+const users_module_1 = __webpack_require__(/*! @/users/users.module */ "./src/users/users.module.ts");
+const hashing_1 = __webpack_require__(/*! @app/hashing */ "./libs/hashing/src/index.ts");
 const mailer_1 = __webpack_require__(/*! @app/mailer */ "./libs/mailer/src/index.ts");
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const email_verification_controller_1 = __webpack_require__(/*! ./email-verification.controller */ "./src/auth/email-verification/email-verification.controller.ts");
 const email_verification_service_1 = __webpack_require__(/*! ./email-verification.service */ "./src/auth/email-verification/email-verification.service.ts");
 const verification_code_repository_1 = __webpack_require__(/*! ./verification-code.repository */ "./src/auth/email-verification/verification-code.repository.ts");
-const users_module_1 = __webpack_require__(/*! @/users/users.module */ "./src/users/users.module.ts");
 let EmailVerificationModule = class EmailVerificationModule {
 };
 exports.EmailVerificationModule = EmailVerificationModule;
 exports.EmailVerificationModule = EmailVerificationModule = __decorate([
     (0, common_1.Module)({
-        imports: [mailer_1.MailerModule, users_module_1.UsersModule],
+        imports: [mailer_1.MailerModule, users_module_1.UsersModule, hashing_1.HashingModule],
         controllers: [email_verification_controller_1.EmailVerificationController],
         providers: [email_verification_service_1.EmailVerificationService, verification_code_repository_1.VerificationCodeRepository],
     })
@@ -3432,18 +3498,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PasswordModule = void 0;
-const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const password_service_1 = __webpack_require__(/*! ./password.service */ "./src/auth/password/password.service.ts");
-const password_controller_1 = __webpack_require__(/*! ./password.controller */ "./src/auth/password/password.controller.ts");
 const reset_password_token_repository_1 = __webpack_require__(/*! @/auth/password/reset-password-token.repository */ "./src/auth/password/reset-password-token.repository.ts");
-const mailer_1 = __webpack_require__(/*! @app/mailer */ "./libs/mailer/src/index.ts");
 const users_module_1 = __webpack_require__(/*! @/users/users.module */ "./src/users/users.module.ts");
+const hashing_1 = __webpack_require__(/*! @app/hashing */ "./libs/hashing/src/index.ts");
+const mailer_1 = __webpack_require__(/*! @app/mailer */ "./libs/mailer/src/index.ts");
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const password_controller_1 = __webpack_require__(/*! ./password.controller */ "./src/auth/password/password.controller.ts");
+const password_service_1 = __webpack_require__(/*! ./password.service */ "./src/auth/password/password.service.ts");
 let PasswordModule = class PasswordModule {
 };
 exports.PasswordModule = PasswordModule;
 exports.PasswordModule = PasswordModule = __decorate([
     (0, common_1.Module)({
-        imports: [mailer_1.MailerModule, users_module_1.UsersModule],
+        imports: [mailer_1.MailerModule, users_module_1.UsersModule, hashing_1.HashingModule],
         controllers: [password_controller_1.PasswordController],
         providers: [password_service_1.PasswordService, reset_password_token_repository_1.ResetPasswordTokenRepository],
     })
@@ -4810,14 +4877,15 @@ const two_factor_controller_1 = __webpack_require__(/*! @/auth/two-factor/two-fa
 const two_factor_repository_1 = __webpack_require__(/*! @/auth/two-factor/two-factor.repository */ "./src/auth/two-factor/two-factor.repository.ts");
 const two_factor_service_1 = __webpack_require__(/*! @/auth/two-factor/two-factor.service */ "./src/auth/two-factor/two-factor.service.ts");
 const users_module_1 = __webpack_require__(/*! @/users/users.module */ "./src/users/users.module.ts");
-const sms_1 = __webpack_require__(/*! @app/sms */ "./libs/sms/src/index.ts");
+const hashing_1 = __webpack_require__(/*! @app/hashing */ "./libs/hashing/src/index.ts");
+const sns_1 = __webpack_require__(/*! @app/sns */ "./libs/sns/src/index.ts");
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 let TwoFactorModule = class TwoFactorModule {
 };
 exports.TwoFactorModule = TwoFactorModule;
 exports.TwoFactorModule = TwoFactorModule = __decorate([
     (0, common_1.Module)({
-        imports: [sms_1.SmsModule, users_module_1.UsersModule],
+        imports: [sns_1.SnsModule, users_module_1.UsersModule, hashing_1.HashingModule],
         controllers: [two_factor_controller_1.TwoFactorController],
         providers: [totp_service_1.TotpService, two_factor_service_1.TwoFactorService, two_factor_repository_1.TwoFactorRepository],
         exports: [two_factor_service_1.TwoFactorService],
@@ -4916,20 +4984,20 @@ const totp_service_1 = __webpack_require__(/*! @/auth/two-factor/totp.service */
 const two_factor_repository_1 = __webpack_require__(/*! @/auth/two-factor/two-factor.repository */ "./src/auth/two-factor/two-factor.repository.ts");
 const users_repository_1 = __webpack_require__(/*! @/users/users.repository */ "./src/users/users.repository.ts");
 const hashing_1 = __webpack_require__(/*! @app/hashing */ "./libs/hashing/src/index.ts");
-const sms_1 = __webpack_require__(/*! @app/sms */ "./libs/sms/src/index.ts");
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const src_1 = __webpack_require__(/*! libs/sns/src */ "./libs/sns/src/index.ts");
 let TwoFactorService = TwoFactorService_1 = class TwoFactorService {
     totpService;
     hashingService;
-    smsService;
+    snsService;
     usersRepository;
     twoFactorRepository;
     logger = new common_1.Logger(TwoFactorService_1.name);
     SMS_EXPIRATION_TIME = 10 * 60 * 1000;
-    constructor(totpService, hashingService, smsService, usersRepository, twoFactorRepository) {
+    constructor(totpService, hashingService, snsService, usersRepository, twoFactorRepository) {
         this.totpService = totpService;
         this.hashingService = hashingService;
-        this.smsService = smsService;
+        this.snsService = snsService;
         this.usersRepository = usersRepository;
         this.twoFactorRepository = twoFactorRepository;
     }
@@ -5015,7 +5083,7 @@ let TwoFactorService = TwoFactorService_1 = class TwoFactorService {
     async setupSms(userId, phoneNumber) {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         try {
-            await this.smsService.sendVerificationCode(phoneNumber, code);
+            await this.snsService.send(phoneNumber, `Your verification code is: ${code}`);
         }
         catch (error) {
             this.logger.error(`Failed to send SMS to ${phoneNumber}: ${error}`);
@@ -5071,7 +5139,7 @@ let TwoFactorService = TwoFactorService_1 = class TwoFactorService {
                 throw new common_1.BadRequestException('Phone number not found');
             }
             const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-            await this.smsService.sendVerificationCode(twoFactorAuth.phoneNumber, verificationCode);
+            await this.snsService.send(twoFactorAuth.phoneNumber, `Your verification code is: ${verificationCode}`);
             const expiresAt = new Date(Date.now() + this.SMS_EXPIRATION_TIME);
             await this.twoFactorRepository.update(userId, {
                 smsCode: verificationCode,
@@ -5103,7 +5171,7 @@ let TwoFactorService = TwoFactorService_1 = class TwoFactorService {
         }
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         try {
-            await this.smsService.sendVerificationCode(twoFactorAuth.phoneNumber, code);
+            await this.snsService.send(twoFactorAuth.phoneNumber, `Your verification code is: ${code}`);
         }
         catch (error) {
             this.logger.error(`Failed to resend SMS to user ${userId}: ${error}`);
@@ -5224,7 +5292,7 @@ let TwoFactorService = TwoFactorService_1 = class TwoFactorService {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + this.SMS_EXPIRATION_TIME);
         try {
-            await this.smsService.sendVerificationCode(twoFactorAuth.phoneNumber, code);
+            await this.snsService.send(twoFactorAuth.phoneNumber, `Your verification code is: ${code}`);
             await this.twoFactorRepository.update(userId, {
                 smsCode: code,
                 smsCodeExpiresAt: expiresAt,
@@ -5240,7 +5308,7 @@ let TwoFactorService = TwoFactorService_1 = class TwoFactorService {
 exports.TwoFactorService = TwoFactorService;
 exports.TwoFactorService = TwoFactorService = TwoFactorService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof totp_service_1.TotpService !== "undefined" && totp_service_1.TotpService) === "function" ? _a : Object, typeof (_b = typeof hashing_1.HashingService !== "undefined" && hashing_1.HashingService) === "function" ? _b : Object, typeof (_c = typeof sms_1.SmsService !== "undefined" && sms_1.SmsService) === "function" ? _c : Object, typeof (_d = typeof users_repository_1.UsersRepository !== "undefined" && users_repository_1.UsersRepository) === "function" ? _d : Object, typeof (_e = typeof two_factor_repository_1.TwoFactorRepository !== "undefined" && two_factor_repository_1.TwoFactorRepository) === "function" ? _e : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof totp_service_1.TotpService !== "undefined" && totp_service_1.TotpService) === "function" ? _a : Object, typeof (_b = typeof hashing_1.HashingService !== "undefined" && hashing_1.HashingService) === "function" ? _b : Object, typeof (_c = typeof src_1.SnsService !== "undefined" && src_1.SnsService) === "function" ? _c : Object, typeof (_d = typeof users_repository_1.UsersRepository !== "undefined" && users_repository_1.UsersRepository) === "function" ? _d : Object, typeof (_e = typeof two_factor_repository_1.TwoFactorRepository !== "undefined" && two_factor_repository_1.TwoFactorRepository) === "function" ? _e : Object])
 ], TwoFactorService);
 
 
@@ -5266,55 +5334,1353 @@ Sentry.init({
 
 /***/ }),
 
+/***/ "./src/invitations/dto/accept-invitation.dto.ts":
+/*!******************************************************!*\
+  !*** ./src/invitations/dto/accept-invitation.dto.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AcceptInvitationDto = void 0;
+class AcceptInvitationDto {
+    workspaceId;
+    userId;
+}
+exports.AcceptInvitationDto = AcceptInvitationDto;
+
+
+/***/ }),
+
+/***/ "./src/invitations/dto/find-all-workspace-invitations.dto.ts":
+/*!*******************************************************************!*\
+  !*** ./src/invitations/dto/find-all-workspace-invitations.dto.ts ***!
+  \*******************************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FindAllWorkspaceInvitationsDto = exports.FindAllWorkspaceInvitationsQuery = void 0;
+const decorators_1 = __webpack_require__(/*! @/shared/decorators */ "./src/shared/decorators/index.ts");
+const generated_1 = __webpack_require__(/*! @prisma/generated */ "./generated/prisma/index.js");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const invitations_types_1 = __webpack_require__(/*! ../invitations.types */ "./src/invitations/invitations.types.ts");
+class FindAllWorkspaceInvitationsQuery {
+    take;
+    cursor;
+    status;
+    role;
+}
+exports.FindAllWorkspaceInvitationsQuery = FindAllWorkspaceInvitationsQuery;
+__decorate([
+    (0, decorators_1.ToNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsPositive)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], FindAllWorkspaceInvitationsQuery.prototype, "take", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], FindAllWorkspaceInvitationsQuery.prototype, "cursor", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(generated_1.InvitationStatus),
+    __metadata("design:type", typeof (_a = typeof generated_1.InvitationStatus !== "undefined" && generated_1.InvitationStatus) === "function" ? _a : Object)
+], FindAllWorkspaceInvitationsQuery.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)([generated_1.MemberRole.ADMIM, generated_1.MemberRole.MEMBER]),
+    __metadata("design:type", typeof (_b = typeof invitations_types_1.InvitationMemberRole !== "undefined" && invitations_types_1.InvitationMemberRole) === "function" ? _b : Object)
+], FindAllWorkspaceInvitationsQuery.prototype, "role", void 0);
+class FindAllWorkspaceInvitationsDto extends FindAllWorkspaceInvitationsQuery {
+    workspaceId;
+}
+exports.FindAllWorkspaceInvitationsDto = FindAllWorkspaceInvitationsDto;
+
+
+/***/ }),
+
+/***/ "./src/invitations/dto/index.ts":
+/*!**************************************!*\
+  !*** ./src/invitations/dto/index.ts ***!
+  \**************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__webpack_require__(/*! ./send-invitation.dto */ "./src/invitations/dto/send-invitation.dto.ts"), exports);
+__exportStar(__webpack_require__(/*! ./accept-invitation.dto */ "./src/invitations/dto/accept-invitation.dto.ts"), exports);
+__exportStar(__webpack_require__(/*! ./reject-invitation.dto */ "./src/invitations/dto/reject-invitation.dto.ts"), exports);
+__exportStar(__webpack_require__(/*! ./find-all-workspace-invitations.dto */ "./src/invitations/dto/find-all-workspace-invitations.dto.ts"), exports);
+
+
+/***/ }),
+
+/***/ "./src/invitations/dto/reject-invitation.dto.ts":
+/*!******************************************************!*\
+  !*** ./src/invitations/dto/reject-invitation.dto.ts ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RejectInvitationDto = void 0;
+class RejectInvitationDto {
+    workspaceId;
+    userId;
+}
+exports.RejectInvitationDto = RejectInvitationDto;
+
+
+/***/ }),
+
+/***/ "./src/invitations/dto/send-invitation.dto.ts":
+/*!****************************************************!*\
+  !*** ./src/invitations/dto/send-invitation.dto.ts ***!
+  \****************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SendInvitationDto = exports.SendInvitationInput = void 0;
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const decorators_1 = __webpack_require__(/*! @/shared/decorators */ "./src/shared/decorators/index.ts");
+const generated_1 = __webpack_require__(/*! @prisma/generated */ "./generated/prisma/index.js");
+const invitations_1 = __webpack_require__(/*! @/invitations */ "./src/invitations/index.ts");
+class SendInvitationInput {
+    email;
+    role;
+}
+exports.SendInvitationInput = SendInvitationInput;
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Email address of the user to invite',
+        example: 'user@example.com',
+        type: 'string',
+        format: 'email',
+    }),
+    (0, class_validator_1.IsEmail)(),
+    (0, decorators_1.TrimAndLower)(),
+    __metadata("design:type", String)
+], SendInvitationInput.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Role to assign to the invited user',
+        enum: [generated_1.MemberRole.MEMBER, generated_1.MemberRole.ADMIM],
+        example: generated_1.MemberRole.MEMBER,
+    }),
+    (0, class_validator_1.IsEnum)([generated_1.MemberRole.MEMBER, generated_1.MemberRole.ADMIM]),
+    __metadata("design:type", typeof (_a = typeof invitations_1.InvitationMemberRole !== "undefined" && invitations_1.InvitationMemberRole) === "function" ? _a : Object)
+], SendInvitationInput.prototype, "role", void 0);
+class SendInvitationDto extends SendInvitationInput {
+    workspaceId;
+    sender;
+}
+exports.SendInvitationDto = SendInvitationDto;
+
+
+/***/ }),
+
+/***/ "./src/invitations/index.ts":
+/*!**********************************!*\
+  !*** ./src/invitations/index.ts ***!
+  \**********************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__webpack_require__(/*! ./dto */ "./src/invitations/dto/index.ts"), exports);
+__exportStar(__webpack_require__(/*! ./interfaces */ "./src/invitations/interfaces/index.ts"), exports);
+__exportStar(__webpack_require__(/*! ./invitations.module */ "./src/invitations/invitations.module.ts"), exports);
+__exportStar(__webpack_require__(/*! ./invitations.service */ "./src/invitations/invitations.service.ts"), exports);
+__exportStar(__webpack_require__(/*! ./invitations.types */ "./src/invitations/invitations.types.ts"), exports);
+__exportStar(__webpack_require__(/*! ./invitations.gateway */ "./src/invitations/invitations.gateway.ts"), exports);
+__exportStar(__webpack_require__(/*! ./invitations.repository */ "./src/invitations/invitations.repository.ts"), exports);
+
+
+/***/ }),
+
+/***/ "./src/invitations/interfaces/create-invitation.interface.ts":
+/*!*******************************************************************!*\
+  !*** ./src/invitations/interfaces/create-invitation.interface.ts ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+
+/***/ "./src/invitations/interfaces/find-invitations-by-user-id.interface.ts":
+/*!*****************************************************************************!*\
+  !*** ./src/invitations/interfaces/find-invitations-by-user-id.interface.ts ***!
+  \*****************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+
+/***/ "./src/invitations/interfaces/find-invitations-by-workspace-id.interface.ts":
+/*!**********************************************************************************!*\
+  !*** ./src/invitations/interfaces/find-invitations-by-workspace-id.interface.ts ***!
+  \**********************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+
+/***/ "./src/invitations/interfaces/index.ts":
+/*!*********************************************!*\
+  !*** ./src/invitations/interfaces/index.ts ***!
+  \*********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__webpack_require__(/*! ./create-invitation.interface */ "./src/invitations/interfaces/create-invitation.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./find-invitations-by-workspace-id.interface */ "./src/invitations/interfaces/find-invitations-by-workspace-id.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./update-invitation.interface */ "./src/invitations/interfaces/update-invitation.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./find-invitations-by-user-id.interface */ "./src/invitations/interfaces/find-invitations-by-user-id.interface.ts"), exports);
+
+
+/***/ }),
+
+/***/ "./src/invitations/interfaces/update-invitation.interface.ts":
+/*!*******************************************************************!*\
+  !*** ./src/invitations/interfaces/update-invitation.interface.ts ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+
+/***/ "./src/invitations/invitations.controller.ts":
+/*!***************************************************!*\
+  !*** ./src/invitations/invitations.controller.ts ***!
+  \***************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c, _d, _e;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InvitationsController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const invitations_service_1 = __webpack_require__(/*! ./invitations.service */ "./src/invitations/invitations.service.ts");
+const guards_1 = __webpack_require__(/*! @/shared/guards */ "./src/shared/guards/index.ts");
+const invitations_gateway_1 = __webpack_require__(/*! @/invitations/invitations.gateway */ "./src/invitations/invitations.gateway.ts");
+const decorators_1 = __webpack_require__(/*! @/shared/decorators */ "./src/shared/decorators/index.ts");
+const dto_1 = __webpack_require__(/*! @/invitations/dto */ "./src/invitations/dto/index.ts");
+const generated_1 = __webpack_require__(/*! @prisma/generated */ "./generated/prisma/index.js");
+const find_all_workspace_invitations_dto_1 = __webpack_require__(/*! @/invitations/dto/find-all-workspace-invitations.dto */ "./src/invitations/dto/find-all-workspace-invitations.dto.ts");
+let InvitationsController = class InvitationsController {
+    invitationsService;
+    invitationsGateway;
+    constructor(invitationsService, invitationsGateway) {
+        this.invitationsService = invitationsService;
+        this.invitationsGateway = invitationsGateway;
+    }
+    findAllUserInvites(userId) {
+        return this.invitationsService.findAllUserInvitations(userId);
+    }
+    findAllWorkspaceInvites(workspaceId, query) {
+        return this.invitationsService.findAllWorkspaceInvitations({
+            workspaceId,
+            ...query,
+        });
+    }
+    async sendInvitation(workspaceId, dto, sender) {
+        const invitation = await this.invitationsService.send({
+            ...dto,
+            workspaceId,
+            sender,
+        });
+        this.invitationsGateway.sendInvitation(invitation);
+        return invitation;
+    }
+    acceptInvitation(workspaceId, userId) {
+        return this.invitationsService.accept({ workspaceId, userId });
+    }
+    rejectInvitation(workspaceId, userId) {
+        return this.invitationsService.reject({ workspaceId, userId });
+    }
+};
+exports.InvitationsController = InvitationsController;
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: "List all user's invitations",
+        description: 'Retrieve a list of all pending invitations sent to the user',
+    }),
+    (0, swagger_1.ApiParam)({
+        name: 'workspaceId',
+        type: 'string',
+        description: 'The ID of the workspace to retrieve invitations for',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'List of user invitations',
+    }),
+    (0, swagger_1.ApiUnauthorizedResponse)({
+        description: 'User is not authenticated',
+    }),
+    (0, common_1.Get)('/user'),
+    __param(0, (0, decorators_1.CurrentUser)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], InvitationsController.prototype, "findAllUserInvites", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: 'List all workspace invitations',
+        description: 'Retrieve a list of all invitations workspace has sent to users. Only workspace members with appropriate permissions can access this endpoint.',
+    }),
+    (0, swagger_1.ApiParam)({
+        name: 'workspaceId',
+        type: 'string',
+        description: 'The ID of the workspace to retrieve invitations for',
+    }),
+    (0, swagger_1.ApiBody)({
+        type: find_all_workspace_invitations_dto_1.FindAllWorkspaceInvitationsDto,
+        description: 'Parameters for filtering and pagination of invitations',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'List of workspace invitations',
+    }),
+    (0, swagger_1.ApiUnauthorizedResponse)({
+        description: 'User is not authenticated',
+    }),
+    (0, swagger_1.ApiForbiddenResponse)({
+        description: 'User does not have permission to view invitations',
+    }),
+    (0, common_1.UseGuards)(guards_1.WorkspaceGuard),
+    (0, common_1.Get)('/workspace'),
+    __param(0, (0, common_1.Param)('workspaceId')),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, typeof (_c = typeof find_all_workspace_invitations_dto_1.FindAllWorkspaceInvitationsQuery !== "undefined" && find_all_workspace_invitations_dto_1.FindAllWorkspaceInvitationsQuery) === "function" ? _c : Object]),
+    __metadata("design:returntype", void 0)
+], InvitationsController.prototype, "findAllWorkspaceInvites", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: 'Send invitation to a user',
+        description: 'Send an invitation to a user to join a workspace. Only workspace members with appropriate permissions can send invitations.',
+    }),
+    (0, swagger_1.ApiParam)({
+        name: 'workspaceId',
+        description: 'The ID of the workspace to invite the user to',
+        type: 'string',
+    }),
+    (0, swagger_1.ApiBody)({
+        type: dto_1.SendInvitationInput,
+        description: 'Invitation details including email and role',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 201,
+        description: 'Invitation sent successfully',
+    }),
+    (0, swagger_1.ApiUnauthorizedResponse)({
+        description: 'User is not authenticated',
+    }),
+    (0, swagger_1.ApiForbiddenResponse)({
+        description: 'User does not have permission to send invitations or user is already a member',
+    }),
+    (0, swagger_1.ApiNotFoundResponse)({
+        description: 'User with the provided email not found',
+    }),
+    (0, common_1.UseGuards)(guards_1.WorkspaceGuard),
+    (0, common_1.Post)('send'),
+    __param(0, (0, common_1.Param)('workspaceId')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, decorators_1.WorkspaceMember)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, typeof (_d = typeof dto_1.SendInvitationInput !== "undefined" && dto_1.SendInvitationInput) === "function" ? _d : Object, typeof (_e = typeof generated_1.Member !== "undefined" && generated_1.Member) === "function" ? _e : Object]),
+    __metadata("design:returntype", Promise)
+], InvitationsController.prototype, "sendInvitation", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: 'Accept workspace invitation',
+        description: 'Accept an invitation to join a workspace. The authenticated user must have a pending invitation for the specified workspace.',
+    }),
+    (0, swagger_1.ApiParam)({
+        name: 'workspaceId',
+        description: 'The ID of the workspace to accept invitation for',
+        type: 'string',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 201,
+        description: 'Invitation accepted successfully',
+    }),
+    (0, swagger_1.ApiUnauthorizedResponse)({
+        description: 'User is not authenticated',
+    }),
+    (0, swagger_1.ApiNotFoundResponse)({
+        description: 'No pending invitation found for this workspace',
+    }),
+    (0, swagger_1.ApiBadRequestResponse)({
+        description: 'Invalid invitation status',
+    }),
+    (0, common_1.Post)('accept'),
+    __param(0, (0, common_1.Param)('workspaceId')),
+    __param(1, (0, decorators_1.CurrentUser)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], InvitationsController.prototype, "acceptInvitation", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({
+        summary: 'Reject workspace invitation',
+        description: 'Reject an invitation to join a workspace. The authenticated user must have a pending invitation for the specified workspace.',
+    }),
+    (0, swagger_1.ApiParam)({
+        name: 'workspaceId',
+        description: 'The ID of the workspace to reject invitation for',
+        type: 'string',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 201,
+        description: 'Invitation rejected successfully',
+    }),
+    (0, swagger_1.ApiUnauthorizedResponse)({
+        description: 'User is not authenticated',
+    }),
+    (0, swagger_1.ApiNotFoundResponse)({
+        description: 'No pending invitation found for this workspace',
+    }),
+    (0, swagger_1.ApiBadRequestResponse)({
+        description: 'Invalid invitation status',
+    }),
+    (0, common_1.Post)('reject'),
+    __param(0, (0, common_1.Param)('workspaceId')),
+    __param(1, (0, decorators_1.CurrentUser)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], InvitationsController.prototype, "rejectInvitation", null);
+exports.InvitationsController = InvitationsController = __decorate([
+    (0, swagger_1.ApiTags)('Invitations'),
+    (0, common_1.UseGuards)(guards_1.AuthenticatedGuard),
+    (0, common_1.Controller)('workspaces/:workspaceId/invites'),
+    __metadata("design:paramtypes", [typeof (_a = typeof invitations_service_1.InvitationsService !== "undefined" && invitations_service_1.InvitationsService) === "function" ? _a : Object, typeof (_b = typeof invitations_gateway_1.InvitationsGateway !== "undefined" && invitations_gateway_1.InvitationsGateway) === "function" ? _b : Object])
+], InvitationsController);
+
+
+/***/ }),
+
+/***/ "./src/invitations/invitations.gateway.ts":
+/*!************************************************!*\
+  !*** ./src/invitations/invitations.gateway.ts ***!
+  \************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InvitationsGateway = void 0;
+const websockets_1 = __webpack_require__(/*! @nestjs/websockets */ "@nestjs/websockets");
+const config_1 = __webpack_require__(/*! @/shared/config */ "./src/shared/config/index.ts");
+const constants_1 = __webpack_require__(/*! @/shared/constants */ "./src/shared/constants/index.ts");
+let InvitationsGateway = class InvitationsGateway {
+    server;
+    handleJoinRoom(userId, socket) {
+        socket.join(userId);
+        return {
+            status: 'success',
+            message: 'Joined room successfully',
+        };
+    }
+    handleLeaveRoom(userId, socket) {
+        socket.leave(userId);
+        return {
+            status: 'success',
+            message: 'Left room successfully',
+        };
+    }
+    sendInvitation(invitation) {
+        this.server.to(invitation.userId).emit(constants_1.SocketEvents.INVITATION_SENT, {
+            data: invitation,
+        });
+    }
+};
+exports.InvitationsGateway = InvitationsGateway;
+__decorate([
+    (0, websockets_1.WebSocketServer)(),
+    __metadata("design:type", Object)
+], InvitationsGateway.prototype, "server", void 0);
+__decorate([
+    (0, websockets_1.SubscribeMessage)(constants_1.SocketEvents.JOIN_ROOM),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], InvitationsGateway.prototype, "handleJoinRoom", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)(constants_1.SocketEvents.LEAVE_ROOM),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], InvitationsGateway.prototype, "handleLeaveRoom", null);
+exports.InvitationsGateway = InvitationsGateway = __decorate([
+    (0, websockets_1.WebSocketGateway)({
+        namespace: 'invitations',
+        path: '/invitations',
+        cors: (0, config_1.getCorsConfig)(process.env.FRONTEND_URL),
+    })
+], InvitationsGateway);
+
+
+/***/ }),
+
+/***/ "./src/invitations/invitations.module.ts":
+/*!***********************************************!*\
+  !*** ./src/invitations/invitations.module.ts ***!
+  \***********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InvitationsModule = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const invitations_service_1 = __webpack_require__(/*! ./invitations.service */ "./src/invitations/invitations.service.ts");
+const invitations_controller_1 = __webpack_require__(/*! ./invitations.controller */ "./src/invitations/invitations.controller.ts");
+const invitations_gateway_1 = __webpack_require__(/*! @/invitations/invitations.gateway */ "./src/invitations/invitations.gateway.ts");
+const invitations_repository_1 = __webpack_require__(/*! @/invitations/invitations.repository */ "./src/invitations/invitations.repository.ts");
+const users_1 = __webpack_require__(/*! @/users */ "./src/users/index.ts");
+const members_1 = __webpack_require__(/*! @/members */ "./src/members/index.ts");
+let InvitationsModule = class InvitationsModule {
+};
+exports.InvitationsModule = InvitationsModule;
+exports.InvitationsModule = InvitationsModule = __decorate([
+    (0, common_1.Module)({
+        imports: [users_1.UsersModule, members_1.MembersModule],
+        controllers: [invitations_controller_1.InvitationsController],
+        providers: [invitations_service_1.InvitationsService, invitations_gateway_1.InvitationsGateway, invitations_repository_1.InvitationsRepository],
+    })
+], InvitationsModule);
+
+
+/***/ }),
+
+/***/ "./src/invitations/invitations.repository.ts":
+/*!***************************************************!*\
+  !*** ./src/invitations/invitations.repository.ts ***!
+  \***************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InvitationsRepository = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const prisma_1 = __webpack_require__(/*! @app/prisma */ "./libs/prisma/src/index.ts");
+const generated_1 = __webpack_require__(/*! @prisma/generated */ "./generated/prisma/index.js");
+let InvitationsRepository = class InvitationsRepository {
+    db;
+    constructor(db) {
+        this.db = db;
+    }
+    findByWorkspaceId(workspaceId, data) {
+        return this.db.invitation.findMany({
+            where: {
+                workspaceId,
+                status: data?.status,
+                role: data?.role,
+            },
+            take: data?.take,
+            cursor: data?.cursor ? { id: data.cursor } : undefined,
+            include: {
+                sender: {
+                    select: {
+                        id: true,
+                        email: true,
+                        username: true,
+                        avatar: true,
+                    },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        avatar: true,
+                        username: true,
+                    },
+                },
+            },
+        });
+    }
+    findByUserId(userId, data) {
+        return this.db.invitation.findMany({
+            where: {
+                userId,
+                status: generated_1.InvitationStatus.PENDING,
+            },
+            take: data?.take,
+            cursor: data?.cursor ? { id: data.cursor } : undefined,
+            include: {
+                workspace: {
+                    select: {
+                        id: true,
+                        logo: true,
+                        name: true,
+                        description: true,
+                    },
+                },
+            },
+        });
+    }
+    findByWorkspaceIdAndUserId(workspaceId, userId) {
+        return this.db.invitation.findFirst({
+            where: {
+                workspaceId,
+                userId,
+                status: generated_1.InvitationStatus.PENDING,
+            },
+        });
+    }
+    create(data) {
+        return this.db.invitation.create({
+            data: {
+                workspaceId: data.workspaceId,
+                senderId: data.senderId,
+                userId: data.userId,
+                role: data.role,
+            },
+        });
+    }
+    update(invitationId, data) {
+        return this.db.invitation.update({
+            where: {
+                id: invitationId,
+            },
+            data: {
+                status: data.status,
+                role: data.role,
+            },
+        });
+    }
+    delete(invitationId) {
+        return this.db.invitation.delete({
+            where: {
+                id: invitationId,
+            },
+        });
+    }
+};
+exports.InvitationsRepository = InvitationsRepository;
+exports.InvitationsRepository = InvitationsRepository = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof prisma_1.PrismaService !== "undefined" && prisma_1.PrismaService) === "function" ? _a : Object])
+], InvitationsRepository);
+
+
+/***/ }),
+
+/***/ "./src/invitations/invitations.service.ts":
+/*!************************************************!*\
+  !*** ./src/invitations/invitations.service.ts ***!
+  \************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InvitationsService = void 0;
+const invitations_1 = __webpack_require__(/*! @/invitations */ "./src/invitations/index.ts");
+const members_1 = __webpack_require__(/*! @/members */ "./src/members/index.ts");
+const utils_1 = __webpack_require__(/*! @/shared/utils */ "./src/shared/utils/index.ts");
+const users_1 = __webpack_require__(/*! @/users */ "./src/users/index.ts");
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const generated_1 = __webpack_require__(/*! @prisma/generated */ "./generated/prisma/index.js");
+let InvitationsService = class InvitationsService {
+    invitationsRepository;
+    usersRepository;
+    membersRepository;
+    DEFAULT_TAKE = 10;
+    constructor(invitationsRepository, usersRepository, membersRepository) {
+        this.invitationsRepository = invitationsRepository;
+        this.usersRepository = usersRepository;
+        this.membersRepository = membersRepository;
+    }
+    async findAllWorkspaceInvitations({ workspaceId, ...dto }) {
+        const take = dto.take ?? this.DEFAULT_TAKE;
+        const limit = dto.cursor ? take + 1 : take;
+        const invitations = await this.invitationsRepository.findByWorkspaceId(workspaceId, {
+            cursor: dto.cursor,
+            take: limit,
+            role: dto.role,
+            status: dto.status,
+        });
+        let nextCursor = null;
+        if (invitations.length > take) {
+            nextCursor = invitations.pop()?.id ?? null;
+        }
+        return {
+            data: invitations,
+            nextCursor,
+        };
+    }
+    async findAllUserInvitations(userId) {
+        return this.invitationsRepository.findByUserId(userId);
+    }
+    async send({ sender, ...dto }) {
+        if (!sender || !(0, utils_1.validateMemberAccess)(sender.role)) {
+            throw new common_1.ForbiddenException("You don't have permission to invite people to this workspace");
+        }
+        const user = await this.usersRepository.findByEmail(dto.email);
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        const receiverMember = await this.membersRepository.findByWorkspaceIdAndUserId(dto.workspaceId, user.id);
+        if (receiverMember) {
+            throw new common_1.ForbiddenException('User is already a member of the workspace');
+        }
+        const existingInvitation = await this.invitationsRepository.findByWorkspaceIdAndUserId(dto.workspaceId, user.id);
+        if (existingInvitation) {
+            throw new common_1.BadRequestException('User already has an invitation pending');
+        }
+        return this.invitationsRepository.create({
+            workspaceId: dto.workspaceId,
+            senderId: sender.id,
+            userId: user.id,
+            role: dto.role,
+        });
+    }
+    async accept({ userId, workspaceId }) {
+        const invite = await this.invitationsRepository.findByWorkspaceIdAndUserId(workspaceId, userId);
+        if (!invite) {
+            throw new common_1.NotFoundException('Invitation not found');
+        }
+        await this.invitationsRepository.update(invite.id, {
+            status: generated_1.InvitationStatus.ACCEPTED,
+        });
+        return this.membersRepository.create({
+            workspaceId: invite.workspaceId,
+            role: invite.role,
+            userId,
+        });
+    }
+    async reject({ workspaceId, userId }) {
+        const invite = await this.invitationsRepository.findByWorkspaceIdAndUserId(workspaceId, userId);
+        if (!invite) {
+            throw new common_1.NotFoundException('Invitation not found');
+        }
+        return this.invitationsRepository.update(invite.id, {
+            status: generated_1.InvitationStatus.DECLINED,
+        });
+    }
+};
+exports.InvitationsService = InvitationsService;
+exports.InvitationsService = InvitationsService = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof invitations_1.InvitationsRepository !== "undefined" && invitations_1.InvitationsRepository) === "function" ? _a : Object, typeof (_b = typeof users_1.UsersRepository !== "undefined" && users_1.UsersRepository) === "function" ? _b : Object, typeof (_c = typeof members_1.MembersRepository !== "undefined" && members_1.MembersRepository) === "function" ? _c : Object])
+], InvitationsService);
+
+
+/***/ }),
+
+/***/ "./src/invitations/invitations.types.ts":
+/*!**********************************************!*\
+  !*** ./src/invitations/invitations.types.ts ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+
+/***/ "./src/members/dto/find-all-members.dto.ts":
+/*!*************************************************!*\
+  !*** ./src/members/dto/find-all-members.dto.ts ***!
+  \*************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FindAllMembersDto = exports.FindAllMembersQuery = void 0;
+const generated_1 = __webpack_require__(/*! @prisma/generated */ "./generated/prisma/index.js");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const decorators_1 = __webpack_require__(/*! @/shared/decorators */ "./src/shared/decorators/index.ts");
+class FindAllMembersQuery {
+    role;
+    take;
+    cursor;
+}
+exports.FindAllMembersQuery = FindAllMembersQuery;
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(generated_1.MemberRole),
+    __metadata("design:type", typeof (_a = typeof generated_1.MemberRole !== "undefined" && generated_1.MemberRole) === "function" ? _a : Object)
+], FindAllMembersQuery.prototype, "role", void 0);
+__decorate([
+    (0, decorators_1.ToNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsPositive)(),
+    __metadata("design:type", Number)
+], FindAllMembersQuery.prototype, "take", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], FindAllMembersQuery.prototype, "cursor", void 0);
+class FindAllMembersDto extends FindAllMembersQuery {
+    workspaceId;
+}
+exports.FindAllMembersDto = FindAllMembersDto;
+
+
+/***/ }),
+
+/***/ "./src/members/dto/index.ts":
+/*!**********************************!*\
+  !*** ./src/members/dto/index.ts ***!
+  \**********************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__webpack_require__(/*! ./find-all-members.dto */ "./src/members/dto/find-all-members.dto.ts"), exports);
+
+
+/***/ }),
+
+/***/ "./src/members/index.ts":
+/*!******************************!*\
+  !*** ./src/members/index.ts ***!
+  \******************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__webpack_require__(/*! ./interfaces */ "./src/members/interfaces/index.ts"), exports);
+__exportStar(__webpack_require__(/*! ./members.module */ "./src/members/members.module.ts"), exports);
+__exportStar(__webpack_require__(/*! ./members.service */ "./src/members/members.service.ts"), exports);
+__exportStar(__webpack_require__(/*! ./members.repository */ "./src/members/members.repository.ts"), exports);
+
+
+/***/ }),
+
+/***/ "./src/members/interfaces/create-member.interface.ts":
+/*!***********************************************************!*\
+  !*** ./src/members/interfaces/create-member.interface.ts ***!
+  \***********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+
+/***/ "./src/members/interfaces/find-by-workspace-id.interface.ts":
+/*!******************************************************************!*\
+  !*** ./src/members/interfaces/find-by-workspace-id.interface.ts ***!
+  \******************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+
+/***/ "./src/members/interfaces/index.ts":
+/*!*****************************************!*\
+  !*** ./src/members/interfaces/index.ts ***!
+  \*****************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__webpack_require__(/*! ./create-member.interface */ "./src/members/interfaces/create-member.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./update-member.interface */ "./src/members/interfaces/update-member.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./find-by-workspace-id.interface */ "./src/members/interfaces/find-by-workspace-id.interface.ts"), exports);
+
+
+/***/ }),
+
+/***/ "./src/members/interfaces/update-member.interface.ts":
+/*!***********************************************************!*\
+  !*** ./src/members/interfaces/update-member.interface.ts ***!
+  \***********************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+
+/***/ "./src/members/members.controller.ts":
+/*!*******************************************!*\
+  !*** ./src/members/members.controller.ts ***!
+  \*******************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MembersController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const members_service_1 = __webpack_require__(/*! ./members.service */ "./src/members/members.service.ts");
+const guards_1 = __webpack_require__(/*! @/shared/guards */ "./src/shared/guards/index.ts");
+const dto_1 = __webpack_require__(/*! @/members/dto */ "./src/members/dto/index.ts");
+let MembersController = class MembersController {
+    membersService;
+    constructor(membersService) {
+        this.membersService = membersService;
+    }
+    async findAll(workspaceId, query) {
+        return this.membersService.findAll({ ...query, workspaceId });
+    }
+};
+exports.MembersController = MembersController;
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Param)("workspaceId")),
+    __param(1, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, typeof (_b = typeof dto_1.FindAllMembersQuery !== "undefined" && dto_1.FindAllMembersQuery) === "function" ? _b : Object]),
+    __metadata("design:returntype", Promise)
+], MembersController.prototype, "findAll", null);
+exports.MembersController = MembersController = __decorate([
+    (0, common_1.UseGuards)(guards_1.AuthenticatedGuard),
+    (0, common_1.UseGuards)(guards_1.WorkspaceGuard),
+    (0, common_1.Controller)('workspaces/:workspaceId/members'),
+    __metadata("design:paramtypes", [typeof (_a = typeof members_service_1.MembersService !== "undefined" && members_service_1.MembersService) === "function" ? _a : Object])
+], MembersController);
+
+
+/***/ }),
+
+/***/ "./src/members/members.module.ts":
+/*!***************************************!*\
+  !*** ./src/members/members.module.ts ***!
+  \***************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MembersModule = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const members_service_1 = __webpack_require__(/*! ./members.service */ "./src/members/members.service.ts");
+const members_controller_1 = __webpack_require__(/*! ./members.controller */ "./src/members/members.controller.ts");
+const members_repository_1 = __webpack_require__(/*! @/members/members.repository */ "./src/members/members.repository.ts");
+let MembersModule = class MembersModule {
+};
+exports.MembersModule = MembersModule;
+exports.MembersModule = MembersModule = __decorate([
+    (0, common_1.Module)({
+        controllers: [members_controller_1.MembersController],
+        providers: [members_service_1.MembersService, members_repository_1.MembersRepository],
+        exports: [members_repository_1.MembersRepository],
+    })
+], MembersModule);
+
+
+/***/ }),
+
+/***/ "./src/members/members.repository.ts":
+/*!*******************************************!*\
+  !*** ./src/members/members.repository.ts ***!
+  \*******************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MembersRepository = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const prisma_1 = __webpack_require__(/*! @app/prisma */ "./libs/prisma/src/index.ts");
+let MembersRepository = class MembersRepository {
+    db;
+    constructor(db) {
+        this.db = db;
+    }
+    async findByWorkspaceId(workspaceId, data) {
+        return this.db.member.findMany({
+            where: {
+                workspaceId,
+            },
+            take: data?.take,
+            cursor: data?.cursor
+                ? {
+                    id: data.cursor,
+                }
+                : undefined,
+        });
+    }
+    async findByWorkspaceIdWithUser(workspaceId, data) {
+        return this.db.member.findMany({
+            where: {
+                workspaceId,
+            },
+            take: data?.take,
+            cursor: data?.cursor
+                ? {
+                    id: data.cursor,
+                }
+                : undefined,
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        username: true,
+                        avatar: true,
+                    },
+                },
+            },
+        });
+    }
+    findByWorkspaceIdAndUserId(workspaceId, userId) {
+        return this.db.member.findUnique({
+            where: {
+                workspaceId_userId: {
+                    workspaceId,
+                    userId,
+                },
+            },
+        });
+    }
+    create(data) {
+        return this.db.member.create({
+            data: {
+                workspaceId: data.workspaceId,
+                userId: data.userId,
+                role: data.role,
+            },
+        });
+    }
+    update(memberId, data) {
+        return this.db.member.update({
+            where: {
+                id: memberId,
+            },
+            data: {
+                role: data.role,
+            },
+        });
+    }
+    delete(memberId) {
+        return this.db.member.delete({
+            where: {
+                id: memberId,
+            },
+        });
+    }
+};
+exports.MembersRepository = MembersRepository;
+exports.MembersRepository = MembersRepository = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof prisma_1.PrismaService !== "undefined" && prisma_1.PrismaService) === "function" ? _a : Object])
+], MembersRepository);
+
+
+/***/ }),
+
+/***/ "./src/members/members.service.ts":
+/*!****************************************!*\
+  !*** ./src/members/members.service.ts ***!
+  \****************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MembersService = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const members_repository_1 = __webpack_require__(/*! @/members/members.repository */ "./src/members/members.repository.ts");
+let MembersService = class MembersService {
+    membersRepository;
+    DEFAULT_TAKE = 10;
+    constructor(membersRepository) {
+        this.membersRepository = membersRepository;
+    }
+    async findAll(dto) {
+        const take = dto.take ?? this.DEFAULT_TAKE;
+        const limit = dto.cursor ? take + 1 : take;
+        const members = await this.membersRepository.findByWorkspaceIdWithUser(dto.workspaceId, {
+            cursor: dto.cursor,
+            role: dto.role,
+            take: limit,
+        });
+        let nextCursor = null;
+        if (members.length > take) {
+            nextCursor = members.pop().id ?? null;
+        }
+        return {
+            data: members,
+            nextCursor,
+        };
+    }
+};
+exports.MembersService = MembersService;
+exports.MembersService = MembersService = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof members_repository_1.MembersRepository !== "undefined" && members_repository_1.MembersRepository) === "function" ? _a : Object])
+], MembersService);
+
+
+/***/ }),
+
 /***/ "./src/shared/config/cors.config.ts":
 /*!******************************************!*\
   !*** ./src/shared/config/cors.config.ts ***!
   \******************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getCorsConfig = getCorsConfig;
-const env_config_1 = __webpack_require__(/*! @/shared/config/env.config */ "./src/shared/config/env.config.ts");
-function getCorsConfig(config) {
+function getCorsConfig(origin) {
     return {
         credentials: true,
-        origin: config.get(env_config_1.Env.FRONTEND_URL),
-    };
-}
-
-
-/***/ }),
-
-/***/ "./src/shared/config/csrf.config.ts":
-/*!******************************************!*\
-  !*** ./src/shared/config/csrf.config.ts ***!
-  \******************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getCsrfConfig = getCsrfConfig;
-const constants_1 = __webpack_require__(/*! @/shared/constants */ "./src/shared/constants/index.ts");
-const env_config_1 = __webpack_require__(/*! @/shared/config/env.config */ "./src/shared/config/env.config.ts");
-const node_crypto_1 = __webpack_require__(/*! node:crypto */ "node:crypto");
-function getCsrfConfig(config) {
-    return {
-        cookieName: constants_1.CSRF_COOKIE_NAME,
-        cookieOptions: {
-            httpOnly: true,
-            secure: config.get(env_config_1.Env.NODE_ENV) === 'production',
-            sameSite: 'strict',
-            path: '/',
-            maxAge: constants_1.CSRF_COOKIE_MAX_AGE,
-        },
-        size: 64,
-        ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
-        getCsrfTokenFromRequest: (req) => req.headers['x-csrf-token'],
-        getSecret: () => (0, node_crypto_1.randomBytes)(32).toString('hex'),
-        getSessionIdentifier: (req) => req.session.id || req.sessionID,
+        origin,
     };
 }
 
@@ -5346,10 +6712,12 @@ exports.envSchema = zod_1.z.object({
     GITHUB_CLIENT_ID: zod_1.z.string().min(1),
     GITHUB_CLIENT_SECRET: zod_1.z.string().min(1),
     SESSION_SECRET: zod_1.z.string().min(1),
+    CSRF_SECRET: zod_1.z.string().min(32),
     REDIS_URL: zod_1.z.string().min(1),
     AWS_REGION: zod_1.z.string().min(1),
     AWS_ACCESS_KEY_ID: zod_1.z.string().min(1),
     AWS_SECRET_ACCESS_KEY: zod_1.z.string().min(1),
+    AWS_S3_BUCKET: zod_1.z.string().min(1),
     MAIL_HOST: zod_1.z.string().min(1),
     MAIL_PORT: zod_1.z.coerce.number(),
     MAIL_USER: zod_1.z.string().min(1),
@@ -5357,6 +6725,7 @@ exports.envSchema = zod_1.z.object({
     MAIL_FROM: zod_1.z.email(),
     SUPPORT_EMAIL: zod_1.z.email().optional(),
     SENTRY_DSN: zod_1.z.url(),
+    STRIPE_API_KEY: zod_1.z.string().min(1),
 });
 function toLiteralMap(arr) {
     return arr.reduce((o, k) => {
@@ -5421,7 +6790,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 __exportStar(__webpack_require__(/*! ./cors.config */ "./src/shared/config/cors.config.ts"), exports);
-__exportStar(__webpack_require__(/*! ./csrf.config */ "./src/shared/config/csrf.config.ts"), exports);
 __exportStar(__webpack_require__(/*! ./env.config */ "./src/shared/config/env.config.ts"), exports);
 __exportStar(__webpack_require__(/*! ./helmet.config */ "./src/shared/config/helmet.config.ts"), exports);
 __exportStar(__webpack_require__(/*! ./session.config */ "./src/shared/config/session.config.ts"), exports);
@@ -5509,6 +6877,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 __exportStar(__webpack_require__(/*! ./csrf.constants */ "./src/shared/constants/csrf.constants.ts"), exports);
 __exportStar(__webpack_require__(/*! ./regexp.constants */ "./src/shared/constants/regexp.constants.ts"), exports);
 __exportStar(__webpack_require__(/*! ./session.constants */ "./src/shared/constants/session.constants.ts"), exports);
+__exportStar(__webpack_require__(/*! ./socket.constants */ "./src/shared/constants/socket.constants.ts"), exports);
 
 
 /***/ }),
@@ -5542,6 +6911,26 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SESSION_COOKIE_NAME = exports.SESSION_MAX_AGE = void 0;
 exports.SESSION_MAX_AGE = 1000 * 60 * 60 * 24 * 7;
 exports.SESSION_COOKIE_NAME = 'app_name:session_id';
+
+
+/***/ }),
+
+/***/ "./src/shared/constants/socket.constants.ts":
+/*!**************************************************!*\
+  !*** ./src/shared/constants/socket.constants.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SocketEvents = void 0;
+var SocketEvents;
+(function (SocketEvents) {
+    SocketEvents["JOIN_ROOM"] = "join_room";
+    SocketEvents["LEAVE_ROOM"] = "leave_room";
+    SocketEvents["INVITATION_SENT"] = "invitation_sent";
+})(SocketEvents || (exports.SocketEvents = SocketEvents = {}));
 
 
 /***/ }),
@@ -5592,6 +6981,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 __exportStar(__webpack_require__(/*! ./current-user.decorator */ "./src/shared/decorators/current-user.decorator.ts"), exports);
 __exportStar(__webpack_require__(/*! ./transformer.decorators */ "./src/shared/decorators/transformer.decorators.ts"), exports);
 __exportStar(__webpack_require__(/*! ./validation.decorators */ "./src/shared/decorators/validation.decorators.ts"), exports);
+__exportStar(__webpack_require__(/*! ./workspace-member.decorator */ "./src/shared/decorators/workspace-member.decorator.ts"), exports);
 
 
 /***/ }),
@@ -5608,6 +6998,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Trim = Trim;
 exports.ToLowerCase = ToLowerCase;
 exports.TrimAndLower = TrimAndLower;
+exports.ToNumber = ToNumber;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
 function Trim() {
@@ -5629,6 +7020,14 @@ function ToLowerCase() {
 function TrimAndLower() {
     return (0, common_1.applyDecorators)(Trim(), ToLowerCase());
 }
+function ToNumber() {
+    return (0, common_1.applyDecorators)(Trim(), (0, class_transformer_1.Transform)(({ value }) => {
+        if (typeof value !== 'string') {
+            throw new Error('ToNumber decorator can only be applied to string properties');
+        }
+        return Number(value);
+    }));
+}
 
 
 /***/ }),
@@ -5648,6 +7047,26 @@ const class_validator_1 = __webpack_require__(/*! class-validator */ "class-vali
 function IsRequiredString(minLength = 1, maxLength = 255, { not_string_msg = 'Must be a string', empty_msg = 'Should not be empty', min_length_msg = `Must be at least ${minLength} characters`, max_length_msg = `Must be at most ${maxLength} characters`, } = {}) {
     return (0, common_1.applyDecorators)((0, class_validator_1.IsString)({ message: not_string_msg }), (0, class_validator_1.IsNotEmpty)({ message: empty_msg }), (0, class_validator_1.MinLength)(minLength, { message: min_length_msg }), (0, class_validator_1.MaxLength)(maxLength, { message: max_length_msg }));
 }
+
+
+/***/ }),
+
+/***/ "./src/shared/decorators/workspace-member.decorator.ts":
+/*!*************************************************************!*\
+  !*** ./src/shared/decorators/workspace-member.decorator.ts ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.WorkspaceMember = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+exports.WorkspaceMember = (0, common_1.createParamDecorator)((data, ctx) => {
+    const req = ctx.switchToHttp().getRequest();
+    const member = req.member;
+    return member ? member[data] : null;
+});
 
 
 /***/ }),
@@ -5707,6 +7126,61 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 __exportStar(__webpack_require__(/*! ./authenticated.guard */ "./src/shared/guards/authenticated.guard.ts"), exports);
+__exportStar(__webpack_require__(/*! ./workspace.guard */ "./src/shared/guards/workspace.guard.ts"), exports);
+
+
+/***/ }),
+
+/***/ "./src/shared/guards/workspace.guard.ts":
+/*!**********************************************!*\
+  !*** ./src/shared/guards/workspace.guard.ts ***!
+  \**********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.WorkspaceGuard = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const members_repository_1 = __webpack_require__(/*! @/members/members.repository */ "./src/members/members.repository.ts");
+let WorkspaceGuard = class WorkspaceGuard {
+    membersRepository;
+    constructor(membersRepository) {
+        this.membersRepository = membersRepository;
+    }
+    async canActivate(context) {
+        const request = context.switchToHttp().getRequest();
+        const user = request.user;
+        if (!user || !user.id) {
+            return false;
+        }
+        const workspaceId = request?.params?.workspaceId;
+        if (!workspaceId) {
+            return false;
+        }
+        const member = await this.membersRepository.findByWorkspaceIdAndUserId(workspaceId, user.id);
+        if (!member) {
+            return false;
+        }
+        request.member = member;
+        return true;
+    }
+};
+exports.WorkspaceGuard = WorkspaceGuard;
+exports.WorkspaceGuard = WorkspaceGuard = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof members_repository_1.MembersRepository !== "undefined" && members_repository_1.MembersRepository) === "function" ? _a : Object])
+], WorkspaceGuard);
 
 
 /***/ }),
@@ -5976,6 +7450,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 __exportStar(__webpack_require__(/*! ./sanitization.utils */ "./src/shared/utils/sanitization.utils.ts"), exports);
 __exportStar(__webpack_require__(/*! ./session.utils */ "./src/shared/utils/session.utils.ts"), exports);
+__exportStar(__webpack_require__(/*! ./token.utils */ "./src/shared/utils/token.utils.ts"), exports);
+__exportStar(__webpack_require__(/*! ./validation.utils */ "./src/shared/utils/validation.utils.ts"), exports);
 
 
 /***/ }),
@@ -6010,7 +7486,7 @@ class SanitizationUtil {
         if (!input || typeof input !== 'string') {
             return input;
         }
-        return (0, xss_1.default)(input, this.xssOptions);
+        return (0, xss_1.filterXSS)(input, this.xssOptions);
     }
     static sanitizeArray(arr) {
         return arr.map((item) => {
@@ -6095,68 +7571,143 @@ async function updateSession(session, updates) {
 
 /***/ }),
 
-/***/ "./src/users/user.entity.ts":
-/*!**********************************!*\
-  !*** ./src/users/user.entity.ts ***!
-  \**********************************/
+/***/ "./src/shared/utils/token.utils.ts":
+/*!*****************************************!*\
+  !*** ./src/shared/utils/token.utils.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.generateSecureToken = generateSecureToken;
+const crypto_1 = __webpack_require__(/*! crypto */ "crypto");
+function generateSecureToken(length = 32) {
+    return (0, crypto_1.randomBytes)(length).toString('hex');
+}
+
+
+/***/ }),
+
+/***/ "./src/shared/utils/validation.utils.ts":
+/*!**********************************************!*\
+  !*** ./src/shared/utils/validation.utils.ts ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.validateMemberAccess = validateMemberAccess;
+const generated_1 = __webpack_require__(/*! @prisma/generated */ "./generated/prisma/index.js");
+function validateMemberAccess(role) {
+    return role === generated_1.MemberRole.OWNER || role === generated_1.MemberRole.ADMIM;
+}
+
+
+/***/ }),
+
+/***/ "./src/users/index.ts":
+/*!****************************!*\
+  !*** ./src/users/index.ts ***!
+  \****************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.UserEntity = void 0;
-const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
-class UserEntity {
-    id;
-    email;
-    username;
-    role;
-    firstName;
-    lastName;
-    avatarId;
-    createdAt;
-    updatedAt;
-    emailVerified;
-    hash;
-    failedLoginAttempts;
-    lockedUntil;
-    resetPasswordTokens;
-    verificationCodes;
-    constructor(partial) {
-        Object.assign(this, partial);
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
     }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__webpack_require__(/*! ./interfaces */ "./src/users/interfaces/index.ts"), exports);
+__exportStar(__webpack_require__(/*! ./users.module */ "./src/users/users.module.ts"), exports);
+__exportStar(__webpack_require__(/*! ./users.repository */ "./src/users/users.repository.ts"), exports);
+__exportStar(__webpack_require__(/*! ./users.service */ "./src/users/users.service.ts"), exports);
+
+
+/***/ }),
+
+/***/ "./src/users/interfaces/create-user.interface.ts":
+/*!*******************************************************!*\
+  !*** ./src/users/interfaces/create-user.interface.ts ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+
+/***/ "./src/users/interfaces/index.ts":
+/*!***************************************!*\
+  !*** ./src/users/interfaces/index.ts ***!
+  \***************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__webpack_require__(/*! ./create-user.interface */ "./src/users/interfaces/create-user.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./safe-user.interface */ "./src/users/interfaces/safe-user.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./update-failed-login-attempts.interface */ "./src/users/interfaces/update-failed-login-attempts.interface.ts"), exports);
+
+
+/***/ }),
+
+/***/ "./src/users/interfaces/safe-user.interface.ts":
+/*!*****************************************************!*\
+  !*** ./src/users/interfaces/safe-user.interface.ts ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.toSafeUser = toSafeUser;
+function toSafeUser(user) {
+    const { hash, failedLoginAttempts, lockedUntil, ...safeUser } = user;
+    return safeUser;
 }
-exports.UserEntity = UserEntity;
-__decorate([
-    (0, class_transformer_1.Exclude)(),
-    __metadata("design:type", Object)
-], UserEntity.prototype, "hash", void 0);
-__decorate([
-    (0, class_transformer_1.Exclude)(),
-    __metadata("design:type", Object)
-], UserEntity.prototype, "failedLoginAttempts", void 0);
-__decorate([
-    (0, class_transformer_1.Exclude)(),
-    __metadata("design:type", Object)
-], UserEntity.prototype, "lockedUntil", void 0);
-__decorate([
-    (0, class_transformer_1.Exclude)(),
-    __metadata("design:type", Array)
-], UserEntity.prototype, "resetPasswordTokens", void 0);
-__decorate([
-    (0, class_transformer_1.Exclude)(),
-    __metadata("design:type", Array)
-], UserEntity.prototype, "verificationCodes", void 0);
+
+
+/***/ }),
+
+/***/ "./src/users/interfaces/update-failed-login-attempts.interface.ts":
+/*!************************************************************************!*\
+  !*** ./src/users/interfaces/update-failed-login-attempts.interface.ts ***!
+  \************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
@@ -6259,21 +7810,21 @@ let UsersRepository = class UsersRepository {
     constructor(db) {
         this.db = db;
     }
-    async findById(userId) {
+    findById(userId) {
         return this.db.user.findUnique({
             where: {
                 id: userId,
             },
         });
     }
-    async findByEmail(email) {
+    findByEmail(email) {
         return this.db.user.findUnique({
             where: {
                 email,
             },
         });
     }
-    async findByEmailOrUsername(email, username) {
+    findByEmailOrUsername(email, username) {
         return this.db.user.findFirst({
             where: {
                 OR: [
@@ -6287,7 +7838,7 @@ let UsersRepository = class UsersRepository {
             },
         });
     }
-    async create(data) {
+    create(data) {
         return this.db.user.create({
             data: {
                 email: data.email,
@@ -6299,7 +7850,7 @@ let UsersRepository = class UsersRepository {
             },
         });
     }
-    async getFailedLoginAttempts(userId) {
+    getFailedLoginAttempts(userId) {
         return this.db.user.findUnique({
             where: {
                 id: userId,
@@ -6314,10 +7865,13 @@ let UsersRepository = class UsersRepository {
             where: {
                 id: userId,
             },
-            data,
+            data: {
+                failedLoginAttempts: data.attempts,
+                lockedUntil: data.lockedUntil,
+            },
         });
     }
-    async updatePassword(userId, hash) {
+    updatePassword(userId, hash) {
         return this.db.user.update({
             where: {
                 id: userId,
@@ -6327,7 +7881,7 @@ let UsersRepository = class UsersRepository {
             },
         });
     }
-    async resetFailedLoginAttempts(userId) {
+    resetFailedLoginAttempts(userId) {
         return this.db.user.update({
             where: {
                 id: userId,
@@ -6338,7 +7892,7 @@ let UsersRepository = class UsersRepository {
             },
         });
     }
-    async updateVerificationStatus(userId) {
+    updateVerificationStatus(userId) {
         return this.db.user.update({
             where: {
                 id: userId,
@@ -6379,7 +7933,7 @@ var UsersService_1;
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UsersService = void 0;
-const user_entity_1 = __webpack_require__(/*! @/users/user.entity */ "./src/users/user.entity.ts");
+const interfaces_1 = __webpack_require__(/*! @/users/interfaces */ "./src/users/interfaces/index.ts");
 const users_repository_1 = __webpack_require__(/*! @/users/users.repository */ "./src/users/users.repository.ts");
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 let UsersService = UsersService_1 = class UsersService {
@@ -6395,7 +7949,7 @@ let UsersService = UsersService_1 = class UsersService {
             this.logger.warn(`User not found: ${userId}`);
             throw new common_1.NotFoundException('User not found');
         }
-        return new user_entity_1.UserEntity(user);
+        return (0, interfaces_1.toSafeUser)(user);
     }
 };
 exports.UsersService = UsersService;
@@ -6403,6 +7957,141 @@ exports.UsersService = UsersService = UsersService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [typeof (_a = typeof users_repository_1.UsersRepository !== "undefined" && users_repository_1.UsersRepository) === "function" ? _a : Object])
 ], UsersService);
+
+
+/***/ }),
+
+/***/ "./src/workspaces/workspaces.controller.ts":
+/*!*************************************************!*\
+  !*** ./src/workspaces/workspaces.controller.ts ***!
+  \*************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.WorkspacesController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const workspaces_service_1 = __webpack_require__(/*! ./workspaces.service */ "./src/workspaces/workspaces.service.ts");
+let WorkspacesController = class WorkspacesController {
+    workspacesService;
+    constructor(workspacesService) {
+        this.workspacesService = workspacesService;
+    }
+};
+exports.WorkspacesController = WorkspacesController;
+exports.WorkspacesController = WorkspacesController = __decorate([
+    (0, common_1.Controller)('workspaces'),
+    __metadata("design:paramtypes", [typeof (_a = typeof workspaces_service_1.WorkspacesService !== "undefined" && workspaces_service_1.WorkspacesService) === "function" ? _a : Object])
+], WorkspacesController);
+
+
+/***/ }),
+
+/***/ "./src/workspaces/workspaces.module.ts":
+/*!*********************************************!*\
+  !*** ./src/workspaces/workspaces.module.ts ***!
+  \*********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.WorkspacesModule = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const workspaces_service_1 = __webpack_require__(/*! ./workspaces.service */ "./src/workspaces/workspaces.service.ts");
+const workspaces_controller_1 = __webpack_require__(/*! ./workspaces.controller */ "./src/workspaces/workspaces.controller.ts");
+const workspaces_repository_1 = __webpack_require__(/*! @/workspaces/workspaces.repository */ "./src/workspaces/workspaces.repository.ts");
+let WorkspacesModule = class WorkspacesModule {
+};
+exports.WorkspacesModule = WorkspacesModule;
+exports.WorkspacesModule = WorkspacesModule = __decorate([
+    (0, common_1.Module)({
+        controllers: [workspaces_controller_1.WorkspacesController],
+        providers: [workspaces_service_1.WorkspacesService, workspaces_repository_1.WorkspacesRepository],
+        exports: [workspaces_repository_1.WorkspacesRepository],
+    })
+], WorkspacesModule);
+
+
+/***/ }),
+
+/***/ "./src/workspaces/workspaces.repository.ts":
+/*!*************************************************!*\
+  !*** ./src/workspaces/workspaces.repository.ts ***!
+  \*************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.WorkspacesRepository = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const prisma_1 = __webpack_require__(/*! @app/prisma */ "./libs/prisma/src/index.ts");
+let WorkspacesRepository = class WorkspacesRepository {
+    db;
+    constructor(db) {
+        this.db = db;
+    }
+};
+exports.WorkspacesRepository = WorkspacesRepository;
+exports.WorkspacesRepository = WorkspacesRepository = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof prisma_1.PrismaService !== "undefined" && prisma_1.PrismaService) === "function" ? _a : Object])
+], WorkspacesRepository);
+
+
+/***/ }),
+
+/***/ "./src/workspaces/workspaces.service.ts":
+/*!**********************************************!*\
+  !*** ./src/workspaces/workspaces.service.ts ***!
+  \**********************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.WorkspacesService = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+let WorkspacesService = class WorkspacesService {
+};
+exports.WorkspacesService = WorkspacesService;
+exports.WorkspacesService = WorkspacesService = __decorate([
+    (0, common_1.Injectable)()
+], WorkspacesService);
 
 
 /***/ }),
@@ -6492,6 +8181,17 @@ module.exports = require("@nestjs/swagger");
 
 "use strict";
 module.exports = require("@nestjs/throttler");
+
+/***/ }),
+
+/***/ "@nestjs/websockets":
+/*!*************************************!*\
+  !*** external "@nestjs/websockets" ***!
+  \*************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("@nestjs/websockets");
 
 /***/ }),
 
@@ -6605,17 +8305,6 @@ module.exports = require("crypto");
 
 /***/ }),
 
-/***/ "csrf-csrf":
-/*!****************************!*\
-  !*** external "csrf-csrf" ***!
-  \****************************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("csrf-csrf");
-
-/***/ }),
-
 /***/ "dotenv":
 /*!*************************!*\
   !*** external "dotenv" ***!
@@ -6701,6 +8390,28 @@ module.exports = require("helmet");
 
 "use strict";
 module.exports = require("ioredis");
+
+/***/ }),
+
+/***/ "ncsrf":
+/*!************************!*\
+  !*** external "ncsrf" ***!
+  \************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("ncsrf");
+
+/***/ }),
+
+/***/ "ncsrf/dist":
+/*!*****************************!*\
+  !*** external "ncsrf/dist" ***!
+  \*****************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("ncsrf/dist");
 
 /***/ }),
 
@@ -7016,13 +8727,13 @@ const core_1 = __webpack_require__(/*! @nestjs/core */ "@nestjs/core");
 const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 const compression = __webpack_require__(/*! compression */ "compression");
 const cookieParser = __webpack_require__(/*! cookie-parser */ "cookie-parser");
-const csrf_csrf_1 = __webpack_require__(/*! csrf-csrf */ "csrf-csrf");
 const session = __webpack_require__(/*! express-session */ "express-session");
 const helmet_1 = __webpack_require__(/*! helmet */ "helmet");
 const nest_winston_1 = __webpack_require__(/*! nest-winston */ "nest-winston");
 const passport = __webpack_require__(/*! passport */ "passport");
 const winston_1 = __webpack_require__(/*! winston */ "winston");
 const app_module_1 = __webpack_require__(/*! ./app.module */ "./src/app.module.ts");
+const ncsrf_1 = __webpack_require__(/*! ncsrf */ "ncsrf");
 async function bootstrap() {
     const logger = (0, winston_1.createLogger)((0, logger_1.getLoggerConfig)());
     const app = await core_1.NestFactory.create(app_module_1.AppModule, {
@@ -7044,20 +8755,19 @@ async function bootstrap() {
         .build();
     const documentFactory = () => swagger_1.SwaggerModule.createDocument(app, swaggerConfig);
     swagger_1.SwaggerModule.setup('api', app, documentFactory);
-    const { doubleCsrfProtection } = (0, csrf_csrf_1.doubleCsrf)((0, config_1.getCsrfConfig)(config));
-    app.enableCors((0, config_1.getCorsConfig)(config));
-    app.use((0, helmet_1.default)(config_1.helmetConfig));
-    app.use(doubleCsrfProtection);
     app.use(compression());
     app.use(cookieParser());
+    app.use(session((0, config_1.getSessionConfig)(config, redis)));
+    app.use(passport.initialize());
+    app.use(passport.session());
+    app.enableCors((0, config_1.getCorsConfig)(config.get(config_1.Env.FRONTEND_URL)));
+    app.use((0, helmet_1.default)(config_1.helmetConfig));
+    app.use((0, ncsrf_1.nestCsrf)());
     app.useGlobalPipes(new pipes_1.SanitizationPipe(), new common_1.ValidationPipe({
         transform: true,
         whitelist: true,
         forbidNonWhitelisted: true,
     }));
-    app.use(session((0, config_1.getSessionConfig)(config, redis)));
-    app.use(passport.initialize());
-    app.use(passport.session());
     await app.listen(PORT, () => {
         console.log('Server is running on port ' + PORT);
     });

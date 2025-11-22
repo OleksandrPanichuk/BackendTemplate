@@ -3,7 +3,6 @@ import './instrument';
 import {
   Env,
   getCorsConfig,
-  getCsrfConfig,
   getSessionConfig,
   helmetConfig,
 } from '@/shared/config';
@@ -16,13 +15,13 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
-import { doubleCsrf } from 'csrf-csrf';
 import * as session from 'express-session';
 import helmet from 'helmet';
 import { WinstonModule } from 'nest-winston';
 import * as passport from 'passport';
 import { createLogger } from 'winston';
 import { AppModule } from './app.module';
+import { nestCsrf } from 'ncsrf';
 
 async function bootstrap() {
   const logger = createLogger(getLoggerConfig());
@@ -52,16 +51,21 @@ async function bootstrap() {
     SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, documentFactory);
 
-  const { doubleCsrfProtection } = doubleCsrf(getCsrfConfig(config));
-
-  // SECURITY
-  app.enableCors(getCorsConfig(config));
-  app.use(helmet(helmetConfig));
-  app.use(doubleCsrfProtection);
-
-  // ADDITIONAL CONFIG
+  // ADDITIONAL CONFIG - Must be before CSRF
   app.use(compression());
   app.use(cookieParser());
+
+  // SESSION - Must be before CSRF as CSRF depends on session
+  app.use(session(getSessionConfig(config, redis)));
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // SECURITY - CSRF depends on cookies and session being parsed
+  app.enableCors(getCorsConfig(config.get<string>(Env.FRONTEND_URL)!));
+  app.use(helmet(helmetConfig));
+  app.use(nestCsrf());
+
+  // VALIDATION PIPES
   app.useGlobalPipes(
     new SanitizationPipe(),
     new ValidationPipe({
@@ -70,11 +74,6 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-
-  // SESSION
-  app.use(session(getSessionConfig(config, redis)));
-  app.use(passport.initialize());
-  app.use(passport.session());
 
   await app.listen(PORT, () => {
     console.log('Server is running on port ' + PORT);

@@ -1,7 +1,8 @@
 import { envSchema } from '@/shared/config';
+import { RATE_LIMITS } from '@/shared/constants';
 import { LoggingInterceptor } from '@/shared/interceptors';
 import { SecurityHeadersMiddleware } from '@/shared/middlewares';
-import { HashingModule } from '@app/hashing';
+import { LoggerModule } from '@app/logger';
 import { PrismaModule } from '@app/prisma';
 import { RedisModule } from '@app/redis';
 import {
@@ -15,9 +16,13 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
+import { CsrfFilter } from 'ncsrf/dist';
 import { AuthModule } from './auth/auth.module';
+import { HealthModule } from './health/health.module';
+import { InvitationsModule } from './invitations/invitations.module';
+import { MembersModule } from './members/members.module';
 import { UsersModule } from './users/users.module';
-import { LoggerModule } from '@app/logger';
+import { WorkspacesModule } from './workspaces/workspaces.module';
 
 @Module({
   imports: [
@@ -28,8 +33,8 @@ import { LoggerModule } from '@app/logger';
     }),
     ThrottlerModule.forRoot([
       {
-        ttl: 60_000,
-        limit: 10,
+        ttl: RATE_LIMITS.GLOBAL.ttl,
+        limit: RATE_LIMITS.GLOBAL.limit,
       },
     ]),
     ScheduleModule.forRoot(),
@@ -39,6 +44,10 @@ import { LoggerModule } from '@app/logger';
     AuthModule,
     UsersModule,
     RedisModule,
+    WorkspacesModule,
+    MembersModule,
+    InvitationsModule,
+    HealthModule,
   ],
   providers: [
     {
@@ -50,6 +59,7 @@ import { LoggerModule } from '@app/logger';
       useClass: LoggingInterceptor,
     },
     { provide: APP_FILTER, useClass: SentryGlobalFilter },
+    { provide: APP_FILTER, useClass: CsrfFilter },
   ],
 })
 export class AppModule implements NestModule {

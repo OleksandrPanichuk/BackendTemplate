@@ -1,4 +1,4 @@
-import { UserEntity } from '@/users/user.entity';
+import { SafeUser } from '@/users/interfaces';
 import { UsersRepository } from '@/users/users.repository';
 import { HashingService } from '@app/hashing';
 import { MailerService } from '@app/mailer';
@@ -23,7 +23,7 @@ export class EmailVerificationService {
     private readonly hashingService: HashingService,
   ) {}
 
-  public async sendVerificationCode(user: UserEntity): Promise<void> {
+  public async sendVerificationCode(user: SafeUser): Promise<void> {
     if (user.emailVerified) {
       throw new BadRequestException('Email already verified');
     }
@@ -92,7 +92,7 @@ export class EmailVerificationService {
 
   public async verifyEmail(
     dto: VerifyEmailInput,
-    user: UserEntity,
+    user: SafeUser,
   ): Promise<void> {
     if (user.emailVerified) {
       throw new BadRequestException('Email already verified');

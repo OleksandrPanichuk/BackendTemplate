@@ -3,6 +3,7 @@ import {
   CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadBucketCommand,
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -45,6 +46,7 @@ export class S3Service {
         accessKeyId: this.config.get<string>(Env.AWS_ACCESS_KEY_ID)!,
         secretAccessKey: this.config.get<string>(Env.AWS_SECRET_ACCESS_KEY)!,
       },
+
       maxAttempts: this.maxRetries,
     });
 
@@ -433,5 +435,18 @@ export class S3Service {
 
   private getPublicUrl(key: string): string {
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
+  }
+
+  public async healthCheck(): Promise<void> {
+    try {
+      const command = new HeadBucketCommand({ Bucket: this.bucket });
+      await this.client.send(command);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown S3 error';
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`S3 health check failed: ${message}`, stack);
+      throw error;
+    }
   }
 }

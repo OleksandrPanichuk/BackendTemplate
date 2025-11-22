@@ -6,8 +6,8 @@ import {
   LocalAuthGuard,
 } from '@/auth/guards';
 import { AuthenticatedGuard } from '@/shared/guards';
+import { RATE_LIMITS } from '@/shared/constants';
 import { destroySession, updateSession } from '@/shared/utils/session.utils';
-import { UserEntity } from '@/users/user.entity';
 import {
   Body,
   Controller,
@@ -39,10 +39,11 @@ import { AuthService } from './auth.service';
 import { Env } from '@/shared/config';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
+import { SafeUser } from '@/users';
 
 @ApiTags('Auth')
 @UseGuards(ThrottlerGuard)
-@Throttle({ default: { ttl: 60_000, limit: 5 } })
+@Throttle({ default: RATE_LIMITS.AUTH.CONTROLLER })
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
@@ -62,7 +63,6 @@ export class AuthController {
   @ApiBody({ type: SignUpInput })
   @ApiCreatedResponse({
     description: 'User account created successfully and user is signed in',
-    type: UserEntity,
   })
   @ApiConflictResponse({
     description: 'Username or email already exists in the system',
@@ -80,7 +80,7 @@ export class AuthController {
   async signUp(
     @Body() dto: SignUpInput,
     @Session() session: TSession,
-  ): Promise<UserEntity> {
+  ): Promise<SafeUser> {
     const user = await this.authService.signUp(dto);
     await updateSession(session, {
       passport: { user: user.id, verified: user.emailVerified },
@@ -137,11 +137,11 @@ export class AuthController {
     @Req() req: Request,
     @Session() session: TSession,
   ): Promise<
-    UserEntity | { requires2FA: boolean; userId: string; message: string }
+    SafeUser | { requires2FA: boolean; userId: string; message: string }
   > {
     if (!req.user) throw new Error('User not found');
 
-    const user = new UserEntity(req.user) as UserEntity & {
+    const user = req.user as SafeUser & {
       requires2FA?: boolean;
     };
 
@@ -225,11 +225,14 @@ export class AuthController {
   @Get('callback/google')
   @UseGuards(GoogleOAuthGuard)
   async googleCallback(
-    @Req() req: Request,
+    @Req()
+    req: Request & {
+      user?: TOAuthUser;
+    },
     @Session() session: TSession,
     @Res() res: Response,
   ) {
-    const user = await this.authService.oauthSignIn(req?.user as TOAuthUser);
+    const user = await this.authService.oauthSignIn(req?.user);
     await updateSession(session, {
       passport: { user: user.id, verified: user.emailVerified },
     });
@@ -270,11 +273,14 @@ export class AuthController {
   @Get('callback/github')
   @UseGuards(GithubOAuthGuard)
   async githubCallback(
-    @Req() req: Request,
+    @Req()
+    req: Request & {
+      user?: TOAuthUser;
+    },
     @Session() session: TSession,
     @Res() res: Response,
   ) {
-    const user = await this.authService.oauthSignIn(req?.user as TOAuthUser);
+    const user = await this.authService.oauthSignIn(req?.user);
     await updateSession(session, {
       passport: { user: user.id, verified: user.emailVerified },
     });
@@ -291,7 +297,6 @@ export class AuthController {
   @ApiBody({ type: Verify2FAInput })
   @ApiOkResponse({
     description: '2FA verified successfully and session created',
-    type: UserEntity,
   })
   @ApiBadRequestResponse({
     description: 'Invalid 2FA code or no pending 2FA verification',
@@ -302,37 +307,32 @@ export class AuthController {
   @ApiTooManyRequestsResponse({
     description: 'Too many requests - Rate limit exceeded',
   })
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @Throttle({ default: RATE_LIMITS.AUTH.VERIFY_2FA })
   @HttpCode(HttpStatus.OK)
   @Post('verify-2fa')
   async verify2FA(
     @Body() dto: Verify2FAInput,
     @Session() session: TSession,
-  ): Promise<UserEntity> {
-    // Check if there's a pending 2FA verification
+  ): Promise<SafeUser> {
     const pending2FA = session.pending2FA;
     if (!pending2FA || !pending2FA.userId) {
       throw new Error('No pending 2FA verification');
     }
 
-    // Check if the session hasn't expired (5 minutes)
     const fiveMinutes = 5 * 60 * 1000;
     if (Date.now() - pending2FA.timestamp > fiveMinutes) {
-      // Clear the pending 2FA session
       delete session.pending2FA;
       throw new Error(
         '2FA verification session expired. Please sign in again.',
       );
     }
 
-    // Verify the 2FA code
     const user = await this.authService.verify2FA(
       pending2FA.userId,
       dto.method,
       dto.code,
     );
 
-    // Clear the pending 2FA session and create actual session
     delete session.pending2FA;
     await updateSession(session, {
       passport: { user: user.id, verified: user.emailVerified },

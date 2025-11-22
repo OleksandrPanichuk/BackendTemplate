@@ -1,5 +1,5 @@
 import { SignInInput, SignUpInput } from '@/auth/dto';
-import { UserEntity } from '@/users/user.entity';
+import { SafeUser, toSafeUser } from '@/users/interfaces';
 import { UsersRepository } from '@/users/users.repository';
 import { HashingService } from '@app/hashing';
 import {
@@ -25,7 +25,7 @@ export class AuthService {
     private readonly twoFactorService: TwoFactorService,
   ) {}
 
-  public async oauthSignIn(dto?: TOAuthUser): Promise<UserEntity> {
+  public async oauthSignIn(dto?: TOAuthUser): Promise<SafeUser> {
     if (!dto) {
       throw new BadRequestException('Invalid OAuth2 data');
     }
@@ -41,17 +41,17 @@ export class AuthService {
 
       await this.usersRepository.updateVerificationStatus(newUser.id);
 
-      return new UserEntity(newUser);
+      return toSafeUser(newUser);
     }
 
     if (!existingUser.emailVerified) {
       await this.usersRepository.updateVerificationStatus(existingUser.id);
     }
 
-    return new UserEntity(existingUser);
+    return toSafeUser(existingUser);
   }
 
-  public async signUp(dto: SignUpInput): Promise<UserEntity> {
+  public async signUp(dto: SignUpInput): Promise<SafeUser> {
     const existingUser = await this.usersRepository.findByEmailOrUsername(
       dto.email,
       dto.username,
@@ -77,12 +77,12 @@ export class AuthService {
 
     this.logger.log(`New user registered: ${newUser.id}`);
 
-    return new UserEntity(newUser);
+    return toSafeUser(newUser);
   }
 
   public async signIn(
     dto: SignInInput,
-  ): Promise<UserEntity & { requires2FA?: boolean }> {
+  ): Promise<SafeUser & { requires2FA?: boolean }> {
     const user = await this.usersRepository.findByEmail(dto.email);
 
     if (!user) {
@@ -115,11 +115,11 @@ export class AuthService {
 
     const has2FA = await this.twoFactorService.has2FAEnabled(user.id);
     if (has2FA) {
-      const userEntity = new UserEntity(user);
-      return Object.assign(userEntity, { requires2FA: true });
+      const safeUser = toSafeUser(user);
+      return Object.assign(safeUser, { requires2FA: true });
     }
 
-    return new UserEntity(user);
+    return toSafeUser(user);
   }
 
   private async resetFailedAttempts(userId: string) {
@@ -156,7 +156,7 @@ export class AuthService {
     userId: string,
     method: 'totp' | 'sms' | 'backup_code',
     code: string,
-  ): Promise<UserEntity> {
+  ): Promise<SafeUser> {
     // Map 'backup_code' to 'backup' for the two-factor service
     const methodForService = method === 'backup_code' ? 'backup' : method;
     const isValid = await this.twoFactorService.verify2FA(
@@ -174,6 +174,6 @@ export class AuthService {
       throw new BadRequestException('User not found');
     }
 
-    return new UserEntity(user);
+    return toSafeUser(user);
   }
 }

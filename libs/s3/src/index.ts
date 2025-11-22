@@ -1,3 +1,3 @@
-export * from './storage.interfaces';
-export * from './storage.module';
-export * from './storage.service';
+export * from './s3.interfaces';
+export * from './s3.module';
+export * from './s3.service';

@@ -1,3 +1,4 @@
+import { RATE_LIMITS } from '@/shared/constants';
 import {
   Body,
   Controller,
@@ -7,12 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ResetPasswordInput,
-  SendResetPasswordTokenInput,
-  VerifyResetPasswordTokenInput,
-} from './dto';
-import { PasswordService } from './password.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -23,7 +19,12 @@ import {
   ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import {
+  ResetPasswordInput,
+  SendResetPasswordTokenInput,
+  VerifyResetPasswordTokenInput,
+} from './dto';
+import { PasswordService } from './password.service';
 
 @ApiTags('Password')
 @UseGuards(ThrottlerGuard)
@@ -49,7 +50,7 @@ export class PasswordController {
     description: 'Invalid email address or too many requests',
   })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @Throttle({ default: RATE_LIMITS.PASSWORD.SEND_TOKEN })
   @Post('send-token')
   @HttpCode(HttpStatus.CREATED)
   public sendResetPasswordToken(@Body() dto: SendResetPasswordTokenInput) {
@@ -71,7 +72,7 @@ export class PasswordController {
     description: 'Invalid or expired token, or weak password',
   })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Throttle({ default: RATE_LIMITS.PASSWORD.RESET })
   @Patch('reset')
   @HttpCode(HttpStatus.OK)
   public resetPassword(@Body() dto: ResetPasswordInput) {
@@ -91,7 +92,7 @@ export class PasswordController {
   })
   @ApiBadRequestResponse({ description: 'Invalid or expired token' })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @Throttle({ default: RATE_LIMITS.PASSWORD.VERIFY_TOKEN })
   @Post('verify-token')
   @HttpCode(HttpStatus.OK)
   public verifyToken(@Body() dto: VerifyResetPasswordTokenInput) {

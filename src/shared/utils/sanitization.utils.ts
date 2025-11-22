@@ -1,4 +1,4 @@
-import xss, { IFilterXSSOptions } from 'xss';
+import { filterXSS, IFilterXSSOptions } from 'xss';
 
 export class SanitizationUtil {
   private static readonly xssOptions: IFilterXSSOptions = {
@@ -21,7 +21,7 @@ export class SanitizationUtil {
       return input;
     }
 
-    return xss(input, this.xssOptions);
+    return filterXSS(input, this.xssOptions);
   }
 
   static sanitizeArray<T = unknown>(arr: T[]): T[] {

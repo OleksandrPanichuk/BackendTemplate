@@ -8,9 +8,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
+enum MemberRole {
+  OWNER
+  ADMIM
   MEMBER
-  ADMIN
 }
 
 model File {
@@ -20,6 +21,7 @@ model File {
   key String? @unique @db.VarChar(255)
 
   users User[]
+  logos Workspace[]
 
   createdAt DateTime @default(now()) @map("creted_at")
 
@@ -29,10 +31,9 @@ model File {
 model User {
   id String @id @default(uuid()) @db.Uuid
 
-  email         String   @unique
-  emailVerified Boolean  @default(false) @map("email_verified")
-  username      String   @unique
-  role          UserRole @default(MEMBER)
+  email         String  @unique
+  emailVerified Boolean @default(false) @map("email_verified")
+  username      String  @unique
 
   firstName String? @map("first_name") @db.VarChar(255)
   lastName  String? @map("last_name") @db.VarChar(255)
@@ -48,7 +49,10 @@ model User {
   resetPasswordTokens ResetPasswordToken[]
   verificationCodes   VerificationCode[]
   twoFactorAuth       TwoFactorAuth?
-  billingInfo         BillingInfo?
+  workspaces          Member[]
+
+  sentInvitations     Invitation[] @relation("Sender")
+  receivedInvitations Invitation[] @relation("Invited")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -127,8 +131,71 @@ model BillingInfo {
   phoneNumber String @map("phone_number") @db.VarChar(255)
   postalCode  String @map("postal_code") @db.VarChar(255)
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique @map("user_id") @db.Uuid
-
   @@map("billing_info")
+}
+
+model Workspace {
+  id String @id @default(uuid()) @db.Uuid
+
+  name        String  @db.VarChar(255)
+  description String? @db.Text
+  slug        String  @unique @db.VarChar(255)
+  logo        File?   @relation(fields: [logoId], references: [id])
+  logoId      String? @map("logo_id") @db.Uuid
+
+  members     Member[]
+  invitations Invitation[]
+
+  requireTwoFactorAuth Boolean @default(false) @map("require_two_factor_auth")
+
+  createAt  DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("workspaces")
+}
+
+model Member {
+  id String @id @default(uuid()) @db.Uuid
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String    @map("workspace_id") @db.Uuid
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id") @db.Uuid
+
+  role MemberRole @default(MEMBER)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([workspaceId, userId], map: "member_by_workspace_id_and_user_id")
+  @@map("members")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model Invitation {
+  id String @id @default(uuid()) @db.Uuid
+
+  role   MemberRole       @default(MEMBER)
+  status InvitationStatus @default(PENDING)
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String    @map("workspace_id") @db.Uuid
+
+  user   User   @relation("Invited", fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id") @db.Uuid
+
+  sender   User   @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String @map("sender_id") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([workspaceId, userId], map: "invitation_by_workspace_id_and_user_id")
+  @@map("invitations")
 }

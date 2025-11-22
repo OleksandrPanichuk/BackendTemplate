@@ -22,9 +22,9 @@ describe('TwoFactorService', () => {
     verify: jest.fn(),
   };
 
-  // TODO: change the mockSnsService according to the new SnsService methods
-  const mockSnsService = {
-    sendVerificationCode: jest.fn(),
+
+  const mockSnsService: jest.Mocked<Pick<SnsService, 'send'>> = {
+    send: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockUsersRepository = {
@@ -40,6 +40,7 @@ describe('TwoFactorService', () => {
   const userId = 'user-123';
 
   beforeEach(async () => {
+    mockSnsService.send.mockResolvedValue(undefined);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TwoFactorService,
@@ -81,7 +82,7 @@ describe('TwoFactorService', () => {
     mockTotpService.generateQRCode.mockReset();
     mockHashingService.hash.mockReset();
     mockHashingService.verify.mockReset();
-    mockSnsService.sendVerificationCode.mockReset();
+    mockSnsService.send.mockReset();
   });
 
   it('should be defined', () => {
@@ -290,11 +291,11 @@ describe('TwoFactorService', () => {
   describe('setupSms', () => {
     it('should send SMS code and save it to database', async () => {
       const phoneNumber = '+1234567890';
-      mockSnsService.sendVerificationCode.mockResolvedValueOnce(undefined);
+      mockSnsService.send.mockResolvedValueOnce(undefined);
 
       const result = await service.setupSms(userId, phoneNumber);
 
-      expect(mockSnsService.sendVerificationCode).toHaveBeenCalledWith(
+      expect(mockSnsService.send).toHaveBeenCalledWith(
         phoneNumber,
         expect.stringMatching(/^\d{6}$/),
       );
@@ -322,7 +323,7 @@ describe('TwoFactorService', () => {
 
     it('should throw an error when SMS sending fails', async () => {
       const phoneNumber = '+1234567890';
-      mockSnsService.sendVerificationCode.mockRejectedValueOnce(
+      mockSnsService.send.mockRejectedValueOnce(
         new Error('SMS service error'),
       );
 
@@ -420,13 +421,13 @@ describe('TwoFactorService', () => {
         smsCode: null,
         smsCodeExpiresAt: null,
       });
-      mockSnsService.sendVerificationCode.mockResolvedValueOnce(undefined);
+      mockSnsService.send.mockResolvedValueOnce(undefined);
 
       await expect(service.disableSms(userId, '123456')).rejects.toThrow(
         'Verification code sent. Please provide the code to disable SMS.',
       );
 
-      expect(mockSnsService.sendVerificationCode).toHaveBeenCalled();
+      expect(mockSnsService.send).toHaveBeenCalled();
       expect(mockTwoFactorRepository.update).toHaveBeenCalled();
     });
 
@@ -516,7 +517,7 @@ describe('TwoFactorService', () => {
       mockTwoFactorRepository.findByUserId.mockResolvedValueOnce({
         phoneNumber: '+1234567890',
       });
-      mockSnsService.sendVerificationCode.mockRejectedValueOnce(
+      mockSnsService.send.mockRejectedValueOnce(
         new Error('SMS service error'),
       );
 
@@ -529,11 +530,11 @@ describe('TwoFactorService', () => {
       mockTwoFactorRepository.findByUserId.mockResolvedValueOnce({
         phoneNumber: '+1234567890',
       });
-      mockSnsService.sendVerificationCode.mockResolvedValueOnce(undefined);
+      mockSnsService.send.mockResolvedValueOnce(undefined);
 
       const result = await service.resendSmsCode(userId);
 
-      expect(mockSnsService.sendVerificationCode).toHaveBeenCalledWith(
+      expect(mockSnsService.send).toHaveBeenCalledWith(
         '+1234567890',
         expect.stringMatching(/^\d{6}$/),
       );
@@ -883,7 +884,7 @@ describe('TwoFactorService', () => {
         smsEnabled: true,
         phoneNumber: '+1234567890',
       });
-      mockSnsService.sendVerificationCode.mockRejectedValueOnce(
+      mockSnsService.send.mockRejectedValueOnce(
         new Error('SMS service error'),
       );
 
@@ -897,11 +898,11 @@ describe('TwoFactorService', () => {
         smsEnabled: true,
         phoneNumber: '+1234567890',
       });
-      mockSnsService.sendVerificationCode.mockResolvedValueOnce(undefined);
+      mockSnsService.send.mockResolvedValueOnce(undefined);
 
       await service.send2FACode(userId);
 
-      expect(mockSnsService.sendVerificationCode).toHaveBeenCalledWith(
+      expect(mockSnsService.send).toHaveBeenCalledWith(
         '+1234567890',
         expect.stringMatching(/^\d{6}$/),
       );

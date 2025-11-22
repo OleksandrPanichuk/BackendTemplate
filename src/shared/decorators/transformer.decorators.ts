@@ -32,3 +32,18 @@ export function ToLowerCase() {
 export function TrimAndLower() {
   return applyDecorators(Trim(), ToLowerCase());
 }
+
+export function ToNumber() {
+  return applyDecorators(
+    Trim(),
+    Transform(({ value }) => {
+      if (typeof value !== 'string') {
+        throw new Error(
+          'ToNumber decorator can only be applied to string properties',
+        );
+      }
+
+      return Number(value);
+    }),
+  );
+}

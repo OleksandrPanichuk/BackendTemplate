@@ -9,7 +9,7 @@ import { Injectable } from '@nestjs/common';
 export class UsersRepository {
   constructor(private readonly db: PrismaService) {}
 
-  public async findById(userId: string) {
+  public findById(userId: string) {
     return this.db.user.findUnique({
       where: {
         id: userId,
@@ -17,7 +17,7 @@ export class UsersRepository {
     });
   }
 
-  public async findByEmail(email: string) {
+  public findByEmail(email: string) {
     return this.db.user.findUnique({
       where: {
         email,
@@ -25,7 +25,7 @@ export class UsersRepository {
     });
   }
 
-  public async findByEmailOrUsername(email: string, username: string) {
+  public findByEmailOrUsername(email: string, username: string) {
     return this.db.user.findFirst({
       where: {
         OR: [
@@ -40,7 +40,7 @@ export class UsersRepository {
     });
   }
 
-  public async create(data: ICreateUserData) {
+  public create(data: ICreateUserData) {
     return this.db.user.create({
       data: {
         email: data.email,
@@ -53,7 +53,7 @@ export class UsersRepository {
     });
   }
 
-  public async getFailedLoginAttempts(userId: string) {
+  public getFailedLoginAttempts(userId: string) {
     return this.db.user.findUnique({
       where: {
         id: userId,
@@ -72,11 +72,14 @@ export class UsersRepository {
       where: {
         id: userId,
       },
-      data,
+      data: {
+        failedLoginAttempts: data.attempts,
+        lockedUntil: data.lockedUntil,
+      },
     });
   }
 
-  public async updatePassword(userId: string, hash: string) {
+  public updatePassword(userId: string, hash: string) {
     return this.db.user.update({
       where: {
         id: userId,
@@ -87,7 +90,7 @@ export class UsersRepository {
     });
   }
 
-  public async resetFailedLoginAttempts(userId: string) {
+  public resetFailedLoginAttempts(userId: string) {
     return this.db.user.update({
       where: {
         id: userId,
@@ -99,7 +102,7 @@ export class UsersRepository {
     });
   }
 
-  public async updateVerificationStatus(userId: string) {
+  public updateVerificationStatus(userId: string) {
     return this.db.user.update({
       where: {
         id: userId,

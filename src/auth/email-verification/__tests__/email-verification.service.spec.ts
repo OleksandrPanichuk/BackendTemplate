@@ -5,7 +5,7 @@ import { VerificationCodeRepository } from '../verification-code.repository';
 import { UsersRepository } from '@/users/users.repository';
 import { HashingService } from '@app/hashing';
 import { MailerService } from '@app/mailer';
-import { UserEntity } from '@/users/user.entity';
+import { SafeUser } from '@/users/interfaces';
 
 describe('EmailVerificationService', () => {
   let service: EmailVerificationService;
@@ -14,13 +14,13 @@ describe('EmailVerificationService', () => {
   let hashingService: jest.Mocked<HashingService>;
   let mailerService: jest.Mocked<MailerService>;
 
-  const mockUser: UserEntity = {
+  const mockUser: SafeUser = {
     id: 'user-123',
     email: 'test@example.com',
     username: 'testuser',
     firstName: 'Test',
     emailVerified: false,
-  } as UserEntity;
+  } as SafeUser;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

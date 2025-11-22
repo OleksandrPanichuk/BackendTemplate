@@ -1,3 +1,4 @@
+import { RATE_LIMITS } from '@/shared/constants';
 import {
   Body,
   Controller,
@@ -17,7 +18,7 @@ import {
   ApiTooManyRequestsResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { UserEntity } from '@/users/user.entity';
+import { SafeUser } from '@/users/interfaces';
 import { CurrentUser } from '@/shared/decorators';
 import { AuthenticatedGuard } from '@/shared/guards';
 import { VerifyEmailInput } from '@/auth/email-verification/dto';
@@ -63,11 +64,11 @@ export class EmailVerificationController {
   @ApiTooManyRequestsResponse({
     description: 'Too many requests - Rate limit exceeded',
   })
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @Throttle({ default: RATE_LIMITS.EMAIL_VERIFICATION.SEND_CODE })
   @Post('/code')
   @HttpCode(HttpStatus.OK)
   async sendVerificationCode(
-    @CurrentUser() user: UserEntity,
+    @CurrentUser() user: SafeUser,
   ): Promise<{ message: string }> {
     await this.emailVerificationService.sendVerificationCode(user);
     return { message: 'Verification code sent successfully' };
@@ -97,12 +98,12 @@ export class EmailVerificationController {
   @ApiTooManyRequestsResponse({
     description: 'Too many requests - Rate limit exceeded',
   })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Throttle({ default: RATE_LIMITS.EMAIL_VERIFICATION.VERIFY })
   @Post('/verify')
   @HttpCode(HttpStatus.OK)
   async verifyEmail(
     @Body() dto: VerifyEmailInput,
-    @CurrentUser() user: UserEntity,
+    @CurrentUser() user: SafeUser,
     @Session() session: TSession,
   ): Promise<{ message: string }> {
     await this.emailVerificationService.verifyEmail(dto, user);

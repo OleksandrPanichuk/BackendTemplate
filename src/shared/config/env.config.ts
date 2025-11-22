@@ -19,6 +19,8 @@ export const envSchema = z.object({
   GITHUB_CLIENT_SECRET: z.string().min(1),
   // Session
   SESSION_SECRET: z.string().min(1),
+  // CSRF
+  CSRF_SECRET: z.string().min(32),
   // Redis
   REDIS_URL: z.string().min(1),
   // AWS

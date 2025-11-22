@@ -1,11 +1,11 @@
-import { UserEntity } from '@/users/user.entity';
+import { SafeUser } from '@/users/interfaces';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 
 export const CurrentUser = createParamDecorator(
-  (data: keyof UserEntity, ctx: ExecutionContext) => {
+  (data: keyof SafeUser, ctx: ExecutionContext) => {
     const req = ctx.switchToHttp().getRequest<Request>();
-    const user = req.user as UserEntity;
+    const user = req.user;
     return data ? user?.[data] : user;
   },
 );

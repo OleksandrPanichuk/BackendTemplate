@@ -1,15 +1,13 @@
-import { UserEntity } from '@/users/user.entity';
+import { SafeUser, toSafeUser } from '@/users/interfaces';
 import { UsersRepository } from '@/users/users.repository';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  
-  public async findById(userId: string): Promise<UserEntity> {
+  public async findById(userId: string): Promise<SafeUser> {
     this.logger.debug(`Looking up user by id: ${userId}`);
     const user = await this.usersRepository.findById(userId);
 
@@ -18,6 +16,6 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return new UserEntity(user);
+    return toSafeUser(user);
   }
 }

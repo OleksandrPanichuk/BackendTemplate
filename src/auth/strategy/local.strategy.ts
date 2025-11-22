@@ -1,7 +1,7 @@
 import { STRATEGIES } from '@/auth/auth.constants';
 import { localStrategyPayloadSchema } from '@/auth/auth.schemas';
 import { AuthService } from '@/auth/auth.service';
-import { UserEntity } from '@/users/user.entity';
+import { SafeUser } from '@/users/interfaces';
 import {
   ConflictException,
   Injectable,
@@ -23,7 +23,7 @@ export class LocalStrategy extends PassportStrategy(
     });
   }
 
-  async validate(email: string, password: string): Promise<UserEntity> {
+  async validate(email: string, password: string): Promise<SafeUser> {
     this.logger.debug(`Authenticating local user: ${email}`);
 
     try {

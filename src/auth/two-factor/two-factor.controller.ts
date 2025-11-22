@@ -1,3 +1,4 @@
+import { RATE_LIMITS } from '@/shared/constants';
 import { CurrentUser } from '@/shared/decorators';
 import { AuthenticatedGuard } from '@/shared/guards';
 import {
@@ -84,7 +85,7 @@ export class TwoFactorController {
   })
   @ApiUnauthorizedResponse({ description: 'User not authenticated' })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @Throttle({ default: RATE_LIMITS.TWO_FACTOR.SETUP_TOTP })
   @Post('totp/setup')
   async setupTotp(@CurrentUser('id') userId: string) {
     return await this.twoFactorService.setupTotp(userId);
@@ -113,7 +114,7 @@ export class TwoFactorController {
   @ApiBadRequestResponse({ description: 'TOTP not set up or invalid token' })
   @ApiUnauthorizedResponse({ description: 'User not authenticated' })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @Throttle({ default: RATE_LIMITS.TWO_FACTOR.VERIFY_TOTP })
   @Post('totp/verify')
   async verifyAndEnableTotp(
     @CurrentUser('id') userId: string,
@@ -139,7 +140,7 @@ export class TwoFactorController {
   @ApiBadRequestResponse({ description: 'Invalid code' })
   @ApiUnauthorizedResponse({ description: 'User not authenticated' })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Throttle({ default: RATE_LIMITS.TWO_FACTOR.DISABLE_TOTP })
   @HttpCode(HttpStatus.OK)
   @Delete('totp')
   async disableTotp(
@@ -169,7 +170,7 @@ export class TwoFactorController {
   @ApiBadRequestResponse({ description: 'Invalid phone number format' })
   @ApiUnauthorizedResponse({ description: 'User not authenticated' })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @Throttle({ default: RATE_LIMITS.TWO_FACTOR.SETUP_SMS })
   @Post('sms/setup')
   async setupSms(
     @CurrentUser('id') userId: string,
@@ -198,7 +199,7 @@ export class TwoFactorController {
   })
   @ApiUnauthorizedResponse({ description: 'User not authenticated' })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @Throttle({ default: RATE_LIMITS.TWO_FACTOR.VERIFY_SMS })
   @Post('sms/verify')
   async verifyAndEnableSms(
     @CurrentUser('id') userId: string,
@@ -224,7 +225,7 @@ export class TwoFactorController {
   @ApiBadRequestResponse({ description: 'Invalid SMS code' })
   @ApiUnauthorizedResponse({ description: 'User not authenticated' })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Throttle({ default: RATE_LIMITS.TWO_FACTOR.DISABLE_SMS })
   @HttpCode(HttpStatus.OK)
   @Delete('sms')
   async disableSms(
@@ -253,7 +254,7 @@ export class TwoFactorController {
   })
   @ApiUnauthorizedResponse({ description: 'User not authenticated' })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 2 } })
+  @Throttle({ default: RATE_LIMITS.TWO_FACTOR.RESEND_SMS })
   @Post('sms/resend')
   async resendSmsCode(@CurrentUser('id') userId: string) {
     return await this.twoFactorService.resendSmsCode(userId);
@@ -282,7 +283,7 @@ export class TwoFactorController {
   })
   @ApiUnauthorizedResponse({ description: 'User not authenticated' })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @Throttle({ default: RATE_LIMITS.TWO_FACTOR.VERIFY_BACKUP })
   @Post('backup-codes/verify')
   async verifyBackupCode(
     @CurrentUser('id') userId: string,
@@ -314,7 +315,7 @@ export class TwoFactorController {
   @ApiBadRequestResponse({ description: 'TOTP not enabled' })
   @ApiUnauthorizedResponse({ description: 'User not authenticated' })
   @ApiTooManyRequestsResponse({ description: 'Too many requests' })
-  @Throttle({ default: { ttl: 300_000, limit: 3 } })
+  @Throttle({ default: RATE_LIMITS.TWO_FACTOR.REGENERATE_BACKUP })
   @Post('backup-codes/regenerate')
   async regenerateBackupCodes(
     @CurrentUser('id') userId: string,
