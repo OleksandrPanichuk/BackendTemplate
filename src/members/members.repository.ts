@@ -1,14 +1,22 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@app/prisma';
 import {
   ICreateMemberData,
   IFindByWorkspaceIdData,
 } from '@/members/interfaces';
 import { IUpdateMemberData } from '@/members/interfaces/update-member.interface';
+import { PrismaService } from '@app/prisma';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class MembersRepository {
   constructor(private readonly db: PrismaService) {}
+
+  public async findById(memberId: string) {
+    return this.db.member.findUnique({
+      where: {
+        id: memberId,
+      },
+    });
+  }
 
   public async findByWorkspaceId(
     workspaceId: string,
@@ -86,7 +94,7 @@ export class MembersRepository {
     });
   }
 
-  public delete(memberId: string) {
+  public remove(memberId: string) {
     return this.db.member.delete({
       where: {
         id: memberId,

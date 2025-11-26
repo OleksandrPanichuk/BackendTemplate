@@ -10,7 +10,7 @@ datasource db {
 
 enum MemberRole {
   OWNER
-  ADMIM
+  ADMIN
   MEMBER
 }
 

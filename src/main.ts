@@ -51,16 +51,16 @@ async function bootstrap() {
     SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, documentFactory);
 
-  // ADDITIONAL CONFIG - Must be before CSRF
+  // ADDITIONAL CONFIG
   app.use(compression());
   app.use(cookieParser());
 
-  // SESSION - Must be before CSRF as CSRF depends on session
+  // SESSION
   app.use(session(getSessionConfig(config, redis)));
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // SECURITY - CSRF depends on cookies and session being parsed
+  // SECURITY
   app.enableCors(getCorsConfig(config.get<string>(Env.FRONTEND_URL)!));
   app.use(helmet(helmetConfig));
   app.use(nestCsrf());

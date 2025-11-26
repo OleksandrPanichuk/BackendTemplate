@@ -437,10 +437,11 @@ export class S3Service {
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
   }
 
-  public async healthCheck(): Promise<void> {
+  public async healthCheck() {
     try {
       const command = new HeadBucketCommand({ Bucket: this.bucket });
       await this.client.send(command);
+      return 'OK' as const;
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Unknown S3 error';
